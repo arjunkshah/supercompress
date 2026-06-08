@@ -59,6 +59,7 @@
       <nav class="dash-nav">
         <button type="button" class="dash-nav-item active" data-view="overview">Overview</button>
         <button type="button" class="dash-nav-item" data-view="keys">API keys</button>
+        <button type="button" class="dash-nav-item" data-view="integrations">Integrations</button>
         <button type="button" class="dash-nav-item" data-view="playground">Playground</button>
         <button type="button" class="dash-nav-item" data-view="quickstart">Quickstart</button>
       </nav>
@@ -99,6 +100,18 @@
         </div>
       </section>
 
+      <!-- Integrations -->
+      <section class="dash-view hidden" id="view-integrations">
+        <header class="dash-header">
+          <h1>Composio integrations</h1>
+          <p>Connect once — every API call gathers from these apps. Required for the full stack.</p>
+        </header>
+        <div class="panel" id="integrations-list">
+          <p class="dim">Loading…</p>
+        </div>
+        <p class="dim" style="margin-top:12px">Tavily + Nebius are hosted by us. You only connect Composio here.</p>
+      </section>
+
       <!-- Playground -->
       <section class="dash-view hidden" id="view-playground">
         <header class="dash-header">
@@ -108,8 +121,15 @@
         <div class="panel">
           <label class="field-label">API key</label>
           <input class="field-input" id="pg-key" placeholder="sc_live_…" />
-          <label class="field-label">Your query</label>
-          <textarea class="field-textarea" id="pg-query" rows="3">What PRs need my review and what should I ship this week?</textarea>
+          <label class="field-label">Your app context (optional — simulates your DB)</label>
+          <textarea class="field-textarea" id="pg-context" rows="4">## User tasks
+- Ship onboarding flow
+- Fix reminder timezone bug
+
+## Reminders
+- Call dentist Tuesday 3pm</textarea>
+          <label class="field-label">User query</label>
+          <textarea class="field-textarea" id="pg-query" rows="2">What should I focus on today?</textarea>
           <button type="button" class="btn btn-primary" id="pg-run">Run agent turn</button>
           <div class="compress-result" id="pg-result"></div>
         </div>

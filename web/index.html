@@ -60,21 +60,27 @@
     </section>
 
     <section id="product">
-      <p class="section-label">The product</p>
-      <h2>Not compression-as-a-chore. A full agent turn.</h2>
+      <p class="section-label">For app builders like Timmy</p>
+      <h2>Replace OpenAI. Keep your app. All sponsors, every call.</h2>
       <p class="section-lead">
-        Other APIs make you gather context yourself. SuperCompress is the layer that does the work —
-        then fixes the memory problem that kills every multi-turn agent.
+        Building a productivity app with AI chat? Connect Gmail in our dashboard, pass tasks/reminders as
+        <code>context_blocks</code>, get <code>answer</code> from Nebius. Tavily + Composio + compression run automatically — not optional.
       </p>
       <div class="install product-call">
-{ "query": "What PRs need my review and what's blocking ship?" }
+// Timmy's backend — was OpenAI, now SuperCompress
+POST /v1/agent/turn
+{
+  "query": "Add a reminder for dentist Tuesday",
+  "context_blocks": [
+    "## User tasks\n- Ship onboarding",
+    "## Reminders\n- Standup daily 9am"
+  ]
+}
 
-→ Tavily finds market + status context
-→ Composio snapshots GitHub, Gmail, Linear
-→ SuperCompress: 2,400 tokens → 840 tokens
-→ Nebius answers + can act via Composio tools
+Every call → Tavily (web) → Composio (your Gmail) → SuperCompress → Nebius
+→ { "answer": "...", "stack": { "tavily": true, "composio": true, ... } }
 
-{ "answer": "...", "memory": { "kv_savings_pct": 65.0 }, "phases": [...] }</div>
+See integration guide on GitHub: docs/INTEGRATE.md</div>
     </section>
 
     <section id="stack">

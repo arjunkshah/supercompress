@@ -46,6 +46,7 @@ function showDash(user) {
   $("#user-label").textContent = user.name || user.email;
   loadOverview();
   loadKeys();
+  loadIntegrations();
   updateQuickstart();
   const saved = localStorage.getItem(API_KEY_KEY);
   if (saved && $("#pg-key")) $("#pg-key").value = saved;
@@ -140,27 +141,40 @@ function updateQuickstart() {
   $("#qs-curl").textContent = `curl -X POST ${base}/v1/agent/turn \\
   -H "Content-Type: application/json" \\
   -H "X-API-Key: ${key}" \\
-  -d '{"query": "What should I ship today?"}'`;
+  -d '{
+    "query": "What should I focus on today?",
+    "context_blocks": [
+      "## User tasks\\n- Ship onboarding\\n- Fix reminder bug",
+      "## Reminders\\n- Dentist Tue 3pm"
+    ]
+  }'`;
   $("#qs-python").textContent = `import httpx
 
 r = httpx.post(
     "${base}/v1/agent/turn",
     headers={"X-API-Key": "${key}"},
-    json={"query": "What should I ship today?"},
+    json={
+        "query": user_message,
+        "context_blocks": [
+            f"## Tasks\\n{format_tasks(tasks)}",
+            f"## Reminders\\n{format_reminders(reminders)}",
+        ],
+    },
     timeout=120,
 )
 data = r.json()
-print(data["answer"])
-print(data["memory"]["kv_savings_pct"], "% KV saved")`;
+# Tavily + Composio + SuperCompress + Nebius — every call
+print(data["answer"])  # show in your chat UI`;
   $("#qs-js").textContent = `const res = await fetch("${base}/v1/agent/turn", {
   method: "POST",
-  headers: {
-    "Content-Type": "application/json",
-    "X-API-Key": "${key}",
-  },
-  body: JSON.stringify({ query: "What should I ship today?" }),
+  headers: { "Content-Type": "application/json", "X-API-Key": "${key}" },
+  body: JSON.stringify({
+    query: userMessage,
+    context_blocks: [tasksBlock, remindersBlock],
+  }),
 });
-const { answer, memory, phases } = await res.json();`;
+const { answer, memory, stack } = await res.json();
+// stack: { tavily, composio, supercompress, nebius } — all true`;
 }
 
 function escapeHtml(s) {
@@ -197,9 +211,34 @@ function logout() {
   showAuth();
 }
 
+async function loadIntegrations() {
+  const el = $("#integrations-list");
+  try {
+    const data = await api("GET", "/v1/dashboard/integrations");
+    const linked = new Set(data.linked || []);
+    el.innerHTML = (data.toolkits || ["gmail", "github", "linear"]).map((tk) => {
+      const on = linked.has(tk);
+      return `<div class="key-row">
+        <div><strong>${tk}</strong><span class="dim">${on ? "Connected" : "Not connected"}</span></div>
+        ${on ? "" : `<button type="button" class="btn btn-ghost btn-sm connect-btn" data-tk="${tk}">Connect</button>`}
+      </div>`;
+    }).join("");
+    $$(".connect-btn", el).forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const res = await api("POST", `/v1/dashboard/integrations/connect/${btn.dataset.tk}`);
+        if (res.redirect_url) window.open(res.redirect_url, "_blank");
+        else loadIntegrations();
+      });
+    });
+  } catch (_) {
+    el.innerHTML = '<p class="dim">Sign in to manage Composio connections.</p>';
+  }
+}
+
 async function runPlayground() {
   const key = $("#pg-key")?.value?.trim();
   const query = $("#pg-query")?.value || "";
+  const contextRaw = $("#pg-context")?.value || "";
   const out = $("#pg-result");
   if (!key) {
     out.textContent = "Enter your API key.";
@@ -207,12 +246,16 @@ async function runPlayground() {
   }
   localStorage.setItem(API_KEY_KEY, key);
   updateQuickstart();
-  out.innerHTML = '<p class="dim">Running Tavily → Composio → compress → Nebius… (30–60s)</p>';
+  out.innerHTML = '<p class="dim">Tavily → Composio → your blocks → compress → Nebius… (30–60s)</p>';
+  const context_blocks = contextRaw.split("---").map((s) => s.trim()).filter(Boolean);
+  const body = context_blocks.length > 1
+    ? { query, context_blocks }
+    : { query, context_blocks: contextRaw.trim() ? [contextRaw.trim()] : [] };
   try {
     const r = await fetch(apiPath("/v1/agent/turn"), {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-API-Key": key },
-      body: JSON.stringify({ query }),
+      body: JSON.stringify(body),
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.detail || "Failed");
@@ -275,7 +318,10 @@ function bindAuth() {
 
 function bindDash() {
   $$(".dash-nav-item").forEach((btn) => {
-    btn.addEventListener("click", () => setView(btn.dataset.view));
+    btn.addEventListener("click", () => {
+      setView(btn.dataset.view);
+      if (btn.dataset.view === "integrations") loadIntegrations();
+    });
   });
 
   $("#create-key-btn")?.addEventListener("click", () => showKeyModal(true));

@@ -14,7 +14,10 @@ def test_agent_turn_demo_stack(monkeypatch):
 
     r = client.post(
         "/v1/agent/turn",
-        json={"query": "What should I ship today?"},
+        json={
+            "query": "What should I ship today?",
+            "context_blocks": ["## Tasks\n- Fix onboarding bug"],
+        },
     )
     assert r.status_code == 200
     data = r.json()
@@ -24,5 +27,7 @@ def test_agent_turn_demo_stack(monkeypatch):
     assert "tavily" in phases
     assert "composio" in phases
     assert "memory" in phases
+    assert "app" in phases or data.get("sources", {}).get("app_blocks", 0) >= 0
+    assert data.get("stack", {}).get("tavily") is True
 
     get_settings.cache_clear()

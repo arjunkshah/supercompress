@@ -44,11 +44,18 @@ class CompareResponse(BaseModel):
 
 
 class AgentTurnRequest(BaseModel):
-    """Primary product — we research, gather apps, compress, and answer."""
+    """
+    Primary product — every call runs Tavily + Composio + SuperCompress + Nebius.
 
-    query: str = Field(..., description="What should the agent do or answer?")
-    search_web: bool = Field(default=True, description="Tavily live web research")
-    gather_apps: bool = Field(default=True, description="Composio GitHub/Gmail/Linear snapshots")
+    Pass `context_blocks` for your app state (tasks, reminders, chat history).
+    Connect Composio in the dashboard for Gmail/GitHub/etc.
+    """
+
+    query: str = Field(..., description="User message or task for this turn")
+    context_blocks: List[str] = Field(
+        default_factory=list,
+        description="Your app data as markdown blocks — tasks, reminders, session state",
+    )
     budget_ratio: float = Field(default=0.35, ge=0.05, le=1.0)
 
 
@@ -66,3 +73,12 @@ class AgentTurnResponse(BaseModel):
     actions: List[dict] = Field(default_factory=list)
     sources: dict = Field(default_factory=dict)
     model: str = ""
+    stack: dict = Field(
+        default_factory=lambda: {
+            "tavily": True,
+            "composio": True,
+            "supercompress": True,
+            "nebius": True,
+        },
+        description="Sponsors invoked on every request",
+    )

@@ -91,3 +91,8 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+def settings_for_user(user_id: str) -> Settings:
+    """Per-dashboard-user Composio OAuth identity."""
+    return get_settings().model_copy(update={"harbor_user_id": user_id})

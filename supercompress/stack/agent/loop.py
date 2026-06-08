@@ -156,52 +156,118 @@ class StackAgent:
         self,
         query: str,
         *,
-        search_web: bool = True,
-        gather_apps: bool = True,
+        app_blocks: Optional[List[str]] = None,
+        budget_ratio: Optional[float] = None,
     ) -> AgentRunResult:
         """
-        Primary product — one call:
-        Tavily research → Composio app snapshots → SuperCompress → Nebius (+ Composio actions).
+        Primary product — sponsors run every time:
+        Tavily → Composio (dashboard-connected apps) → your app_blocks → SuperCompress → Nebius.
         """
         pre_turns: List[TurnLog] = []
         context_blocks: List[str] = []
+        budget = budget_ratio if budget_ratio is not None else self.settings.harbor_memory_budget
 
-        if search_web:
-            self._log(pre_turns, 0, "tavily", f"Web research: {query[:120]}")
-            bundle = self.tavily.search_and_answer(query)
-            block = bundle.to_context_block()
-            context_blocks.append(block)
-            self._log(
-                pre_turns,
-                0,
-                "tavily",
-                f"{len(bundle.hits)} sources" + (f", synthesis ready" if bundle.answer else ""),
-            )
+        self._log(pre_turns, 0, "tavily", f"Web research: {query[:120]}")
+        bundle = self.tavily.search_and_answer(query)
+        context_blocks.append(bundle.to_context_block())
+        self._log(
+            pre_turns,
+            0,
+            "tavily",
+            f"{len(bundle.hits)} sources" + (" · synthesis ready" if bundle.answer else ""),
+        )
 
-        if gather_apps:
-            self._log(pre_turns, 0, "composio", "Gathering GitHub · Gmail · Linear")
-            composio_data = self.composio.gather_all()
-            app_blocks = composio_data.all_context_blocks()
-            context_blocks.extend(app_blocks)
-            gh = len(composio_data.github.prs_needing_review) + len(composio_data.github.open_issues)
-            gm = len(composio_data.gmail.unanswered) + len(composio_data.gmail.important)
-            lin = len(composio_data.linear.blocked) + len(composio_data.linear.in_progress)
-            self._log(pre_turns, 0, "composio", f"Apps: {gh} GitHub items, {gm} emails, {lin} Linear items")
+        self._log(pre_turns, 0, "composio", "Gathering connected apps (GitHub · Gmail · Linear)")
+        composio_data = self.composio.gather_all()
+        context_blocks.extend(composio_data.all_context_blocks())
+        gh = len(composio_data.github.prs_needing_review) + len(composio_data.github.open_issues)
+        gm = len(composio_data.gmail.unanswered) + len(composio_data.gmail.important)
+        lin = len(composio_data.linear.blocked) + len(composio_data.linear.in_progress)
+        self._log(pre_turns, 0, "composio", f"{gh} GitHub · {gm} Gmail · {lin} Linear items")
 
-        if not context_blocks:
-            context_blocks.append("## Context\nNo external data gathered for this query.")
+        extra = [b.strip() for b in (app_blocks or []) if b and b.strip()]
+        if extra:
+            context_blocks.extend(extra)
+            self._log(pre_turns, 0, "app", f"Merged {len(extra)} block(s) from your application")
 
-        result = self.run_with_tools(
+        result = self._run_with_tools_budget(
             AGENT_TURN_SYSTEM,
             query,
             context_blocks,
             workflow="agent_turn",
+            budget_ratio=budget,
         )
         result.turns = pre_turns + result.turns
-        result.prompt_meta["search_web"] = search_web
-        result.prompt_meta["gather_apps"] = gather_apps
         result.prompt_meta["query"] = query[:500]
+        result.prompt_meta["app_blocks"] = len(extra)
+        result.prompt_meta["stack"] = ["tavily", "composio", "supercompress", "nebius"]
         return result
+
+    def _run_with_tools_budget(
+        self,
+        system_prompt: str,
+        user_prompt: str,
+        context_blocks: List[str],
+        *,
+        workflow: str,
+        budget_ratio: float,
+    ) -> AgentRunResult:
+        """Like run_with_tools but with explicit budget_ratio."""
+        turns: List[TurnLog] = []
+        actions: List[Dict[str, Any]] = []
+
+        merged_context = "\n\n".join(context_blocks)
+        self._log(turns, 0, "gather", f"{len(context_blocks)} blocks · {len(merged_context)} chars")
+
+        compressed, mem = compress_for_turn(context_blocks, user_prompt, budget_ratio=budget_ratio)
+        self._log(
+            turns,
+            1,
+            "memory",
+            f"SuperCompress: {mem.original_tokens}→{mem.kept_tokens} tok · {mem.kv_savings_pct:.1f}% saved",
+            memory_stats={
+                "policy": mem.policy_name,
+                "original_tokens": mem.original_tokens,
+                "kept_tokens": mem.kept_tokens,
+                "kv_savings_pct": mem.kv_savings_pct,
+            },
+        )
+
+        tools = self.composio.get_openai_tools()
+        messages: List[Dict[str, Any]] = [
+            {"role": "system", "content": system_prompt},
+            {
+                "role": "user",
+                "content": f"## Context (SuperCompress @ {budget_ratio:.0%})\n\n{compressed}\n\n## Task\n{user_prompt}",
+            },
+        ]
+
+        final_summary = ""
+        for turn_idx in range(2, 2 + self.settings.harbor_max_agent_turns):
+            self._log(turns, turn_idx, "nebius", f"Inference via {getattr(self.nebius, 'model', 'nebius')}")
+            result = self.nebius.chat(messages, tools=tools)
+
+            if result.tool_calls:
+                messages.append({"role": "assistant", "content": result.content or "", "tool_calls": result.tool_calls})
+                new_actions, tool_msgs = self._execute_tool_calls(result.tool_calls)
+                actions.extend(new_actions)
+                messages.extend(tool_msgs)
+                self._log(turns, turn_idx, "composio", f"Executed {len(new_actions)} tool(s)")
+                continue
+
+            final_summary = result.content or ""
+            self._log(turns, turn_idx, "complete", "Done")
+            break
+
+        return AgentRunResult(
+            workflow=workflow,
+            summary=final_summary,
+            actions_taken=actions,
+            memory_savings_pct=mem.kv_savings_pct,
+            turns=turns,
+            raw_messages=messages,
+            prompt_meta={"context_blocks": len(context_blocks), "memory_policy": mem.policy_name},
+        )
 
     def morning_brief(self, *, company: str = "OpenClaw", focus: str = "agent builders") -> AgentRunResult:
         """Full morning brief workflow across all integrations."""

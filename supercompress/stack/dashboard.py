@@ -9,8 +9,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from supercompress.stack import auth, db
+from supercompress.stack.composio import get_composio
+from supercompress.stack.config import settings_for_user
 
 router = APIRouter(tags=["Dashboard"])
+
+CONNECTABLE_TOOLKITS = ["gmail", "github", "linear", "slack", "notion", "googlecalendar"]
 
 
 class SignupRequest(BaseModel):
@@ -119,3 +123,33 @@ def delete_key(key_id: str, user: Dict[str, Any] = Depends(auth.require_user)) -
 @router.get("/dashboard/usage")
 def usage(user: Dict[str, Any] = Depends(auth.require_user)) -> Dict[str, Any]:
     return db.usage_summary(user["id"])
+
+
+@router.get("/dashboard/integrations")
+def integrations(user: Dict[str, Any] = Depends(auth.require_user)) -> Dict[str, Any]:
+    """Composio connection status for this developer account."""
+    composio = get_composio(settings_for_user(user["id"]))
+    summary = composio.connection_summary()
+    return {
+        "toolkits": CONNECTABLE_TOOLKITS,
+        "linked": summary.get("linked", []),
+        "missing": summary.get("missing_oauth", []),
+        "all_linked": summary.get("all_linked", False),
+        "note": "Connect apps here — every API call gathers from your linked Composio accounts.",
+    }
+
+
+@router.post("/dashboard/integrations/connect/{toolkit}")
+def connect_integration(toolkit: str, user: Dict[str, Any] = Depends(auth.require_user)) -> Dict[str, Any]:
+    slug = toolkit.lower().strip()
+    if slug not in CONNECTABLE_TOOLKITS:
+        raise HTTPException(status_code=400, detail=f"Unknown toolkit. Use: {', '.join(CONNECTABLE_TOOLKITS)}")
+    composio = get_composio(settings_for_user(user["id"]))
+    result = composio.auth_connect(slug)
+    if result.error and not result.already_connected:
+        raise HTTPException(status_code=502, detail=result.error)
+    return {
+        "toolkit": slug,
+        "already_connected": result.already_connected,
+        "redirect_url": result.redirect_url,
+    }

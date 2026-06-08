@@ -19,7 +19,7 @@ from supercompress.stack.api_models import (
     CompressStats,
     CompressTextRequest,
 )
-from supercompress.stack.config import get_settings
+from supercompress.stack.config import get_settings, settings_for_user
 from supercompress.stack.turn4_demo import QUERY, TURN_BLOCKS
 
 router = APIRouter(tags=["SuperCompress API"])
@@ -88,6 +88,12 @@ def _agent_result_to_response(result, query: str) -> AgentTurnResponse:
         actions=result.actions_taken,
         sources=result.prompt_meta,
         model=model,
+        stack={
+            "tavily": True,
+            "composio": True,
+            "supercompress": True,
+            "nebius": True,
+        },
     )
 
 
@@ -98,21 +104,28 @@ def agent_turn(
     _key: Dict[str, Any] = Depends(require_api_key),
 ) -> AgentTurnResponse:
     """
-    **Primary API** — send a query, get an answer.
+    **Primary API** — every call runs all sponsors:
 
-    We run Tavily (web) → Composio (apps) → SuperCompress (memory) → Nebius (LLM).
-    Hosted keys — no Tavily/Composio/Nebius setup on your side.
+    Tavily (web) → Composio (your connected apps) → your context_blocks → SuperCompress → Nebius.
+
+    Connect Gmail/GitHub in the dashboard. Pass tasks/reminders as context_blocks.
+    Use `answer` in your UI instead of calling OpenAI directly.
     """
+    from fastapi import HTTPException
+
     s = get_settings()
     if not s.demo_mode and not s.has_live_stack():
-        from fastapi import HTTPException
-
         raise HTTPException(
             status_code=503,
             detail="Agent stack unavailable — server missing Tavily/Composio/Nebius keys.",
         )
-    agent = StackAgent(s)
-    result = agent.agent_turn(req.query, search_web=req.search_web, gather_apps=req.gather_apps)
+    user_settings = settings_for_user(_key["user_id"])
+    agent = StackAgent(user_settings)
+    result = agent.agent_turn(
+        req.query,
+        app_blocks=req.context_blocks,
+        budget_ratio=req.budget_ratio,
+    )
     response = _agent_result_to_response(result, req.query)
     log_request_usage(request, "/v1/agent/turn", response.memory.model_dump())
     return response

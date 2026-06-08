@@ -8,23 +8,27 @@
 
 ## The product
 
+**Replace your OpenAI call.** Every request runs **all sponsors** — no exceptions.
+
 ```bash
 curl -X POST https://supercompress-api.onrender.com/v1/agent/turn \
-  -H "Content-Type: application/json" \
   -H "X-API-Key: sc_live_YOUR_KEY" \
-  -d '{"query": "What PRs need review and what should I ship?"}'
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "What should I focus on?",
+    "context_blocks": ["## Tasks\n- Ship onboarding", "## Reminders\n- Dentist Tue 3pm"]
+  }'
 ```
 
-**One call runs:**
+| Sponsor | Every call |
+|---------|------------|
+| **Tavily** | Web research for the query |
+| **Composio** | Your connected apps (connect Gmail/GitHub in dashboard) |
+| **Your app** | `context_blocks` — tasks, reminders, user state |
+| **SuperCompress** | Compress everything (~65% KV savings) |
+| **Nebius** | `answer` for your chat UI |
 
-| Step | Sponsor | What it does |
-|------|---------|--------------|
-| 1 | **Tavily** | Live web research for your query |
-| 2 | **Composio** | GitHub, Gmail, Linear snapshots (+ tool execution) |
-| 3 | **SuperCompress** | Memory compression (~65% KV savings) |
-| 4 | **Nebius** | LLM answer on trimmed context |
-
-You get `answer`, `memory` stats, `phases`, and `actions`. No Tavily/Composio/Nebius keys on your side — we host the stack.
+**Integrate like Timmy:** [docs/INTEGRATE.md](docs/INTEGRATE.md)
 
 ## Python client
 
