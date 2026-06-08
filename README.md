@@ -1,80 +1,54 @@
 # SuperCompress
 
-**Your agent forgets at turn 4. We fix that.**
-
-The memory layer for AI agents — compress Tavily + Composio context **before every inference call**. ~65% KV savings. Agents keep going.
+**Agent memory API** — send a query, get an answer. We run Tavily, Composio, SuperCompress, and Nebius for you.
 
 🌐 **Site:** [buildersshipbycursor.vercel.app](https://buildersshipbycursor.vercel.app)  
 🔑 **Dashboard:** [Get API key](https://buildersshipbycursor.vercel.app/dashboard.html)  
-🔌 **Official API:** [supercompress-api.onrender.com/docs](https://supercompress-api.onrender.com/docs)  
-📦 **Repo:** [github.com/arjunkshah/supercompress](https://github.com/arjunkshah/supercompress)  
-🐦 **Launch copy:** [LAUNCH.md](LAUNCH.md) · **Deploy:** [DEPLOY.md](DEPLOY.md)
+🔌 **API:** [supercompress-api.onrender.com/docs](https://supercompress-api.onrender.com/docs)
 
-## 60 seconds
+## The product
 
 ```bash
-git clone https://github.com/arjunkshah/supercompress.git
-cd supercompress
-./setup.sh
-./bin/supercompress turns    # show the turn 4 problem
-./bin/supercompress loop     # full Tavily → Composio → Nebius stack
-```
-
-## What it is
-
-| Layer | Role |
-|-------|------|
-| **Tavily** | Pours in live web research (creates bloat) |
-| **Composio** | App state + tool actions (multi-turn trap) |
-| **SuperCompress** | **Trims context before the model reads it** |
-| **Nebius** | Inference on compressed input — faster, cheaper |
-| **OpenClaw** | Runtime hook for long agent sessions |
-
-## How devs connect
-
-| Method | Best for |
-|--------|----------|
-| **Python package** | Python agents (same process) |
-| **HTTP API** | Node, Go, Rust, any language |
-| **Python HTTP client** | Python app → remote API server |
-
-Docs: [docs/API.md](docs/API.md) · [API page](https://buildersshipbycursor.vercel.app/api.html)
-
-**Python (in-process):**
-```python
-from supercompress import compress_for_turn
-compressed, stats = compress_for_turn(blocks, query)
-```
-
-**HTTP (any language)** — official cloud API, no install:
-```bash
-curl -X POST https://supercompress-api.onrender.com/v1/compress/blocks \
+curl -X POST https://supercompress-api.onrender.com/v1/agent/turn \
   -H "Content-Type: application/json" \
-  -d '{"context_blocks":["## GitHub\nPR #42"],"query":"triage PRs"}'
+  -H "X-API-Key: sc_live_YOUR_KEY" \
+  -d '{"query": "What PRs need review and what should I ship?"}'
 ```
 
-Swagger UI: http://127.0.0.1:8787/docs
+**One call runs:**
 
-## CLI
+| Step | Sponsor | What it does |
+|------|---------|--------------|
+| 1 | **Tavily** | Live web research for your query |
+| 2 | **Composio** | GitHub, Gmail, Linear snapshots (+ tool execution) |
+| 3 | **SuperCompress** | Memory compression (~65% KV savings) |
+| 4 | **Nebius** | LLM answer on trimmed context |
 
-| Command | What |
-|---------|------|
-| `./bin/supercompress turns` | Turn 4 visualization (Twitter/video) |
-| `./bin/supercompress loop` | Full sponsor stack |
-| `./bin/supercompress doctor` | Health check |
-| `./bin/supercompress setup` | API keys + OAuth |
-| `./bin/supercompress serve` | Site + API on :8787 |
+You get `answer`, `memory` stats, `phases`, and `actions`. No Tavily/Composio/Nebius keys on your side — we host the stack.
 
-## Live stack
+## Python client
+
+```python
+from supercompress.http_client import SuperCompressClient
+
+with SuperCompressClient(api_key="sc_live_...") as client:
+    result = client.agent_turn("What should I ship today?")
+    print(result["answer"])
+    print(result["memory"]["kv_savings_pct"], "% saved")
+```
+
+## Self-host
 
 ```bash
-cp .env.example .env   # or ./bin/supercompress setup
-./bin/supercompress connect github gmail --wait
-./bin/supercompress loop --live
+./setup.sh
+cp .env.example .env   # add NEBIUS, COMPOSIO, TAVILY keys
+./bin/supercompress serve   # dashboard + API on :8787
 ```
 
-## BuilderShip
+## Advanced
 
-[BUILDERSHIP.md](BUILDERSHIP.md) · [PRODUCT.md](PRODUCT.md) · [SUBMISSION.md](SUBMISSION.md)
+`POST /v1/compress/blocks` — compress context you already gathered. Most apps use `/v1/agent/turn`.
 
-MIT · Built for agents that actually run.
+Docs: [docs/API.md](docs/API.md) · [DEPLOY.md](DEPLOY.md)
+
+MIT

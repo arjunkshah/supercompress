@@ -59,6 +59,28 @@ class SuperCompressClient:
         r.raise_for_status()
         return r.json()
 
+    def agent_turn(
+        self,
+        query: str,
+        *,
+        search_web: bool = True,
+        gather_apps: bool = True,
+        budget_ratio: float = 0.35,
+    ) -> dict:
+        """Full stack — Tavily, Composio, compress, Nebius. Returns answer + memory + phases."""
+        r = self._client.post(
+            "/v1/agent/turn",
+            json={
+                "query": query,
+                "search_web": search_web,
+                "gather_apps": gather_apps,
+                "budget_ratio": budget_ratio,
+            },
+            timeout=120.0,
+        )
+        r.raise_for_status()
+        return r.json()
+
     def compress_blocks(
         self,
         context_blocks: List[str],

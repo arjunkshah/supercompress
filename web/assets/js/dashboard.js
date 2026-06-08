@@ -137,40 +137,30 @@ async function loadKeys() {
 function updateQuickstart() {
   const key = localStorage.getItem(API_KEY_KEY) || "sc_live_YOUR_KEY";
   const base = (window.SUPERCOMPRESS_API || "https://supercompress-api.onrender.com").replace(/\/$/, "");
-  $("#qs-curl").textContent = `curl -X POST ${base}/v1/compress/blocks \\
+  $("#qs-curl").textContent = `curl -X POST ${base}/v1/agent/turn \\
   -H "Content-Type: application/json" \\
   -H "X-API-Key: ${key}" \\
-  -d '{
-    "context_blocks": ["## Tavily\\n...", "## GitHub\\n..."],
-    "query": "What should I ship?",
-    "budget_ratio": 0.35
-  }'`;
+  -d '{"query": "What should I ship today?"}'`;
   $("#qs-python").textContent = `import httpx
 
 r = httpx.post(
-    "${base}/v1/compress/blocks",
+    "${base}/v1/agent/turn",
     headers={"X-API-Key": "${key}"},
-    json={
-        "context_blocks": ["## Tavily\\n...", "## GitHub\\n..."],
-        "query": "What should I ship?",
-        "budget_ratio": 0.35,
-    },
+    json={"query": "What should I ship today?"},
+    timeout=120,
 )
 data = r.json()
-print(data["stats"]["kv_savings_pct"], "% saved")`;
-  $("#qs-js").textContent = `const res = await fetch("${base}/v1/compress/blocks", {
+print(data["answer"])
+print(data["memory"]["kv_savings_pct"], "% KV saved")`;
+  $("#qs-js").textContent = `const res = await fetch("${base}/v1/agent/turn", {
   method: "POST",
   headers: {
     "Content-Type": "application/json",
     "X-API-Key": "${key}",
   },
-  body: JSON.stringify({
-    context_blocks: [tavilyBlock, githubBlock],
-    query: "What should I ship?",
-    budget_ratio: 0.35,
-  }),
+  body: JSON.stringify({ query: "What should I ship today?" }),
 });
-const { compressed_text, stats } = await res.json();`;
+const { answer, memory, phases } = await res.json();`;
 }
 
 function escapeHtml(s) {
@@ -209,7 +199,6 @@ function logout() {
 
 async function runPlayground() {
   const key = $("#pg-key")?.value?.trim();
-  const context = $("#pg-context")?.value || "";
   const query = $("#pg-query")?.value || "";
   const out = $("#pg-result");
   if (!key) {
@@ -218,23 +207,27 @@ async function runPlayground() {
   }
   localStorage.setItem(API_KEY_KEY, key);
   updateQuickstart();
-  out.textContent = "Compressing…";
-  const blocks = context.split("---").map((s) => s.trim()).filter(Boolean);
+  out.innerHTML = '<p class="dim">Running Tavily → Composio → compress → Nebius… (30–60s)</p>';
   try {
-    const r = await fetch(apiPath("/v1/compress/blocks"), {
+    const r = await fetch(apiPath("/v1/agent/turn"), {
       method: "POST",
       headers: { "Content-Type": "application/json", "X-API-Key": key },
-      body: JSON.stringify({ context_blocks: blocks, query, budget_ratio: 0.35 }),
+      body: JSON.stringify({ query }),
     });
     const d = await r.json();
     if (!r.ok) throw new Error(d.detail || "Failed");
-    const s = d.stats;
+    const s = d.memory;
+    const phases = (d.phases || [])
+      .map((p) => `<li><code>${escapeHtml(p.phase)}</code> ${escapeHtml(p.detail)}</li>`)
+      .join("");
     out.innerHTML = `<div class="result-grid">
       <div class="stat"><span class="stat-n">${s.original_tokens}</span><span class="stat-l">tokens in</span></div>
       <div class="stat"><span class="stat-n">${s.kept_tokens}</span><span class="stat-l">kept</span></div>
-      <div class="stat accent"><span class="stat-n">${s.kv_savings_pct}%</span><span class="stat-l">saved</span></div>
+      <div class="stat accent"><span class="stat-n">${s.kv_savings_pct}%</span><span class="stat-l">KV saved</span></div>
     </div>
-    <pre class="result-preview">${escapeHtml(d.compressed_text)}</pre>`;
+    <p class="result-meta"><strong>Phases</strong></p><ul class="phase-list">${phases}</ul>
+    <p class="result-meta"><strong>Answer</strong></p>
+    <pre class="result-preview">${escapeHtml(d.answer || "")}</pre>`;
     loadOverview();
   } catch (e) {
     out.textContent = e.message;

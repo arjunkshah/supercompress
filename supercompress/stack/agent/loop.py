@@ -8,7 +8,7 @@ from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 from supercompress import compress_for_turn
-from supercompress.stack.agent.prompts import INCIDENT_COMMANDER_SYSTEM, MORNING_BRIEF_SYSTEM
+from supercompress.stack.agent.prompts import AGENT_TURN_SYSTEM, INCIDENT_COMMANDER_SYSTEM, MORNING_BRIEF_SYSTEM
 from supercompress.stack.composio import get_composio
 from supercompress.stack.config import Settings, get_settings
 from supercompress.stack.integrations import incident_instructions, morning_brief_instructions
@@ -151,6 +151,57 @@ class StackAgent:
                 "context_blocks": len(context_blocks),
             },
         )
+
+    def agent_turn(
+        self,
+        query: str,
+        *,
+        search_web: bool = True,
+        gather_apps: bool = True,
+    ) -> AgentRunResult:
+        """
+        Primary product — one call:
+        Tavily research → Composio app snapshots → SuperCompress → Nebius (+ Composio actions).
+        """
+        pre_turns: List[TurnLog] = []
+        context_blocks: List[str] = []
+
+        if search_web:
+            self._log(pre_turns, 0, "tavily", f"Web research: {query[:120]}")
+            bundle = self.tavily.search_and_answer(query)
+            block = bundle.to_context_block()
+            context_blocks.append(block)
+            self._log(
+                pre_turns,
+                0,
+                "tavily",
+                f"{len(bundle.hits)} sources" + (f", synthesis ready" if bundle.answer else ""),
+            )
+
+        if gather_apps:
+            self._log(pre_turns, 0, "composio", "Gathering GitHub · Gmail · Linear")
+            composio_data = self.composio.gather_all()
+            app_blocks = composio_data.all_context_blocks()
+            context_blocks.extend(app_blocks)
+            gh = len(composio_data.github.prs_needing_review) + len(composio_data.github.open_issues)
+            gm = len(composio_data.gmail.unanswered) + len(composio_data.gmail.important)
+            lin = len(composio_data.linear.blocked) + len(composio_data.linear.in_progress)
+            self._log(pre_turns, 0, "composio", f"Apps: {gh} GitHub items, {gm} emails, {lin} Linear items")
+
+        if not context_blocks:
+            context_blocks.append("## Context\nNo external data gathered for this query.")
+
+        result = self.run_with_tools(
+            AGENT_TURN_SYSTEM,
+            query,
+            context_blocks,
+            workflow="agent_turn",
+        )
+        result.turns = pre_turns + result.turns
+        result.prompt_meta["search_web"] = search_web
+        result.prompt_meta["gather_apps"] = gather_apps
+        result.prompt_meta["query"] = query[:500]
+        return result
 
     def morning_brief(self, *, company: str = "OpenClaw", focus: str = "agent builders") -> AgentRunResult:
         """Full morning brief workflow across all integrations."""

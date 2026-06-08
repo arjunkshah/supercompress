@@ -1,26 +1,26 @@
 # SuperCompress API
 
-**Official public API (no install):**
+**Official API:** https://supercompress-api.onrender.com  
+**Dashboard (API keys):** https://buildersshipbycursor.vercel.app/dashboard.html
 
-```
-https://supercompress-api.onrender.com
-```
+## Primary: `POST /v1/agent/turn`
 
-- Docs: https://supercompress-api.onrender.com/docs  
-- Website: https://buildersshipbycursor.vercel.app  
-- Same-origin proxy on Vercel: `https://buildersshipbycursor.vercel.app/v1/...`
+Send a query. We run **Tavily → Composio → SuperCompress → Nebius** with hosted keys.
 
 ```bash
-curl -s https://supercompress-api.onrender.com/v1/compress/blocks \
+curl -X POST https://supercompress-api.onrender.com/v1/agent/turn \
   -H "Content-Type: application/json" \
-  -d '{"context_blocks":["## Tavily\nAI agent market..."], "query": "What matters?", "budget_ratio": 0.35}'
+  -H "X-API-Key: sc_live_YOUR_KEY" \
+  -d '{"query": "What PRs need review?"}'
 ```
 
-Free tier cold-starts in ~30s after idle. For production volume, self-host with `./bin/supercompress serve` or deploy your own Docker image (`deploy/Dockerfile`).
+Response: `answer`, `memory` (KV savings), `phases`, `actions`.
 
 ---
 
-Three ways for devs to integrate — pick what fits your stack.
+## Advanced: compress-only endpoints
+
+If you gather context yourself:
 
 ## 1. Python package (in-process, fastest)
 

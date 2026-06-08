@@ -15,52 +15,54 @@
       <div class="nav-links">
         <a href="index.html">Home</a>
         <a href="dashboard.html">Dashboard</a>
-        <a href="app.html">Demo</a>
-        <a href="https://github.com/arjunkshah/supercompress/blob/main/docs/API.md" target="_blank" rel="noopener">Full docs</a>
+        <a href="https://supercompress-api.onrender.com/docs" target="_blank" rel="noopener">OpenAPI</a>
       </div>
     </div>
   </nav>
 
-  <main class="wrap app-main">
+  <main class="wrap app-main" style="max-width: 800px">
     <header class="app-header">
-      <h1>Developer API</h1>
-      <p>Drop into any agent loop — Python package or HTTP from any language.</p>
+      <h1>API reference</h1>
+      <p>Hosted stack with our Tavily, Composio, and Nebius keys. You need a SuperCompress API key only.</p>
     </header>
 
-    <section class="panel">
-      <h2>Option A — pip install (Python)</h2>
-      <pre class="install">pip install git+https://github.com/arjunkshah/supercompress.git
-
-from supercompress import compress_for_turn
-compressed, stats = compress_for_turn(blocks, query)
-# send `compressed` to your LLM</pre>
-    </section>
-
-    <section class="panel">
-      <h2>Option B — HTTP API (any language)</h2>
-      <p class="panel-desc">Official public API — <a href="dashboard.html">create a free API key</a>, then POST with <code>X-API-Key</code>.</p>
-      <pre class="install">POST https://supercompress-api.onrender.com/v1/compress/blocks
+    <section class="panel card-accent">
+      <h2>POST /v1/agent/turn — the product</h2>
+      <p class="panel-desc">Send a query. We research (Tavily), gather apps (Composio), compress (SuperCompress), answer (Nebius).</p>
+      <pre class="install">POST https://supercompress-api.onrender.com/v1/agent/turn
 Content-Type: application/json
 X-API-Key: sc_live_YOUR_KEY
 
-{
-  "context_blocks": ["## Tavily\\n...", "## GitHub\\n..."],
-  "query": "What should I ship today?",
-  "budget_ratio": 0.35
-}
+{ "query": "What PRs need review and what's blocking ship?" }
 
-→ { "compressed_text": "...", "stats": { "kv_savings_pct": 65.2 } }</pre>
-      <p class="panel-desc">Live docs: <a href="https://supercompress-api.onrender.com/docs" target="_blank" rel="noopener">supercompress-api.onrender.com/docs</a></p>
+→ {
+  "answer": "...",
+  "memory": { "kv_savings_pct": 65.0, "original_tokens": 2400, "kept_tokens": 840 },
+  "phases": [
+    { "phase": "tavily", "detail": "6 sources" },
+    { "phase": "composio", "detail": "GitHub · Gmail · Linear" },
+    { "phase": "memory", "detail": "65% KV savings" },
+    { "phase": "nebius", "detail": "..." }
+  ],
+  "actions": []
+}</pre>
+      <a href="dashboard.html" class="btn btn-primary">Get API key</a>
     </section>
 
     <section class="panel">
-      <h2>Where it goes in your loop</h2>
+      <h2>What runs under the hood</h2>
       <div class="flow">
-        <span>Gather</span><span class="arrow">→</span>
-        <span class="core">POST /v1/compress/blocks</span><span class="arrow">→</span>
-        <span>LLM</span><span class="arrow">→</span>
-        <span>Tools</span>
+        <span>Tavily search</span><span class="arrow">→</span>
+        <span>Composio gather</span><span class="arrow">→</span>
+        <span class="core">SuperCompress</span><span class="arrow">→</span>
+        <span>Nebius + tools</span>
       </div>
+      <p class="panel-desc">Optional flags: <code>search_web</code>, <code>gather_apps</code> (both default true).</p>
+    </section>
+
+    <section class="panel">
+      <h2>Advanced: POST /v1/compress/blocks</h2>
+      <p class="panel-desc">If you already gather context yourself and only need compression. Most apps should use <code>/v1/agent/turn</code>.</p>
     </section>
   </main>
 </body>

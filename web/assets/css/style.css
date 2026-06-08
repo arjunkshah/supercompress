@@ -567,3 +567,12 @@ footer {
 .modal-card h2 { font-size: 1.25rem; margin-bottom: 20px; }
 .key-full { word-break: break-all; font-size: 0.72rem; margin: 12px 0; }
 .warn-text { color: var(--accent); font-size: 0.85rem; margin-bottom: 8px; }
+
+.product-call { line-height: 1.7; font-size: 0.78rem; margin-top: 8px; }
+.card-wide { margin-top: 16px; }
+.feature-list { list-style: none; font-size: 0.9rem; color: var(--muted); }
+.feature-list li { padding: 8px 0; border-bottom: 1px solid var(--line); }
+.feature-list code { color: var(--mint); font-size: 0.82rem; }
+.phase-list { list-style: none; font-size: 0.82rem; color: var(--muted); margin: 8px 0 16px; }
+.phase-list li { padding: 4px 0; }
+.phase-list code { color: var(--accent); margin-right: 8px; }

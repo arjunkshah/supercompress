@@ -18,7 +18,9 @@ def enable_auth(monkeypatch):
 
 
 def test_signup_login_and_key_lifecycle():
-    email = "dev@supercompress.test"
+    import uuid
+
+    email = f"dev-{uuid.uuid4().hex[:8]}@supercompress.test"
     signup = client.post(
         "/v1/auth/signup",
         json={"email": email, "password": "testpass123", "name": "Dev"},

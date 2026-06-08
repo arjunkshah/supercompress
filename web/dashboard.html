@@ -27,7 +27,7 @@
   <main class="wrap dash-auth" id="auth-screen">
     <div class="auth-card">
       <h1>Developer dashboard</h1>
-      <p class="auth-sub">Create API keys, track usage, and call SuperCompress from any app.</p>
+      <p class="auth-sub">API keys for the full agent stack — Tavily, Composio, SuperCompress, Nebius in one call.</p>
       <div class="auth-tabs">
         <button type="button" class="auth-tab active" data-tab="login">Sign in</button>
         <button type="button" class="auth-tab" data-tab="signup">Sign up</button>
@@ -103,26 +103,14 @@
       <section class="dash-view hidden" id="view-playground">
         <header class="dash-header">
           <h1>Playground</h1>
-          <p>Test compression with your API key.</p>
+          <p>Run a full agent turn — we search, gather apps, compress, and answer.</p>
         </header>
         <div class="panel">
           <label class="field-label">API key</label>
           <input class="field-input" id="pg-key" placeholder="sc_live_…" />
-          <label class="field-label">Context blocks (separate with ---)</label>
-          <textarea class="field-textarea" id="pg-context" rows="8">## Tavily
-Composio shipped OpenClaw plugin. Agent memory is the bottleneck.
-
----
-## GitHub
-- #42 fix/auth-timeout — review requested
-- #39 feat/composio-triggers — draft
-
----
-## Gmail
-- sponsor@builders — Demo due June 12</textarea>
-          <label class="field-label">Query</label>
-          <input class="field-input" id="pg-query" value="What should I ship today?" />
-          <button type="button" class="btn btn-primary" id="pg-run">Compress</button>
+          <label class="field-label">Your query</label>
+          <textarea class="field-textarea" id="pg-query" rows="3">What PRs need my review and what should I ship this week?</textarea>
+          <button type="button" class="btn btn-primary" id="pg-run">Run agent turn</button>
           <div class="compress-result" id="pg-result"></div>
         </div>
       </section>

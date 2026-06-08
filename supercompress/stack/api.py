@@ -8,7 +8,11 @@ from fastapi import APIRouter, Depends, Request
 
 from supercompress import compare_policies, compress_for_turn
 from supercompress.stack.auth import log_request_usage, require_api_key
+from supercompress.stack.agent.loop import StackAgent
 from supercompress.stack.api_models import (
+    AgentPhase,
+    AgentTurnRequest,
+    AgentTurnResponse,
     CompareResponse,
     CompressBlocksRequest,
     CompressResponse,
@@ -40,13 +44,78 @@ def api_health() -> Dict[str, Any]:
         "service": "supercompress",
         "version": "v1",
         "demo_mode": s.demo_mode,
+        "stack": {
+            "tavily": s.has_tavily() or s.demo_mode,
+            "composio": s.has_composio() or s.demo_mode,
+            "nebius": s.has_nebius() or s.demo_mode,
+            "live": s.has_live_stack(),
+        },
         "endpoints": {
-            "compress": "POST /v1/compress",
+            "agent_turn": "POST /v1/agent/turn",
             "compress_blocks": "POST /v1/compress/blocks",
-            "compare": "POST /v1/compare",
             "docs": "/docs",
         },
     }
+
+
+def _agent_result_to_response(result, query: str) -> AgentTurnResponse:
+    mem_stats = None
+    for t in reversed(result.turns):
+        if t.phase == "memory" and t.memory_stats:
+            mem_stats = t.memory_stats
+            break
+    memory = CompressStats(
+        original_tokens=mem_stats.get("original_tokens", 0) if mem_stats else 0,
+        kept_tokens=mem_stats.get("kept_tokens", 0) if mem_stats else 0,
+        kv_savings_pct=mem_stats.get("kv_savings_pct", result.memory_savings_pct) if mem_stats else result.memory_savings_pct,
+        policy_name=mem_stats.get("policy", "SuperCompress") if mem_stats else "SuperCompress",
+        budget_ratio=get_settings().harbor_memory_budget,
+    )
+    phases = [
+        AgentPhase(phase=t.phase, detail=t.detail, memory_stats=t.memory_stats)
+        for t in result.turns
+    ]
+    model = ""
+    for t in result.turns:
+        if t.phase == "nebius" and "via" in t.detail:
+            model = t.detail.split("via", 1)[-1].strip()
+            break
+    return AgentTurnResponse(
+        answer=result.summary or "",
+        query=query,
+        memory=memory,
+        phases=phases,
+        actions=result.actions_taken,
+        sources=result.prompt_meta,
+        model=model,
+    )
+
+
+@router.post("/agent/turn", response_model=AgentTurnResponse)
+def agent_turn(
+    req: AgentTurnRequest,
+    request: Request,
+    _key: Dict[str, Any] = Depends(require_api_key),
+) -> AgentTurnResponse:
+    """
+    **Primary API** — send a query, get an answer.
+
+    We run Tavily (web) → Composio (apps) → SuperCompress (memory) → Nebius (LLM).
+    Hosted keys — no Tavily/Composio/Nebius setup on your side.
+    """
+    s = get_settings()
+    if not s.demo_mode and not s.has_live_stack():
+        from fastapi import HTTPException
+
+        raise HTTPException(
+            status_code=503,
+            detail="Agent stack unavailable — server missing Tavily/Composio/Nebius keys.",
+        )
+    agent = StackAgent(s)
+    result = agent.agent_turn(req.query, search_web=req.search_web, gather_apps=req.gather_apps)
+    response = _agent_result_to_response(result, req.query)
+    log_request_usage(request, "/v1/agent/turn", response.memory.model_dump())
+    return response
 
 
 @router.post("/compress/blocks", response_model=CompressResponse)
@@ -55,7 +124,7 @@ def compress_blocks(
     request: Request,
     _key: Dict[str, Any] = Depends(require_api_key),
 ) -> CompressResponse:
-    """Recommended — pass Tavily + Composio blocks separately."""
+    """Advanced — compress context you already gathered. Most apps should use POST /v1/agent/turn."""
     blocks = [b for b in req.context_blocks if b.strip()]
     compressed, result = compress_for_turn(blocks, req.query, budget_ratio=req.budget_ratio)
     merged = "\n\n---\n\n".join(blocks)

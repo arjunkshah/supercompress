@@ -38,6 +38,6 @@ def root():
     return {
         "service": "SuperCompress API",
         "docs": "/docs",
-        "compress": "POST /v1/compress/blocks",
+        "agent_turn": "POST /v1/agent/turn",
         "website": "https://buildersshipbycursor.vercel.app",
     }

@@ -10,8 +10,14 @@ services:
     healthCheckPath: /v1/health
     envVars:
       - key: HARBOR_DEMO
-        value: "1"
+        value: "0"
       - key: PORT
         value: "8000"
       - key: SUPERCOMPRESS_JWT_SECRET
         generateValue: true
+      - key: NEBIUS_API_KEY
+        sync: false
+      - key: COMPOSIO_API_KEY
+        sync: false
+      - key: TAVILY_API_KEY
+        sync: false

@@ -15,7 +15,7 @@ RUN pip install --no-cache-dir -U pip && \
     pip install --no-cache-dir -e . && \
     supercompress-train --fast
 
-ENV HARBOR_DEMO=1
+ENV HARBOR_DEMO=0
 ENV PORT=8000
 
 EXPOSE 8000
