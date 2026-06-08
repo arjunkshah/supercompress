@@ -395,9 +395,23 @@ function showFirebaseAuthUi() {
   $("#auth-divider")?.classList.remove("hidden");
 }
 
+async function resolveFirebaseConfig() {
+  const baked = window.SUPERCOMPRESS_FIREBASE;
+  if (baked?.enabled && baked.apiKey && baked.projectId) {
+    return { auth: "firebase", firebase: baked };
+  }
+  try {
+    const cfg = await fetchJson("GET", "/v1/auth/config");
+    if (cfg.auth === "firebase" && cfg.firebase?.enabled) return cfg;
+  } catch (_) {
+    /* API unreachable — rely on baked config */
+  }
+  return null;
+}
+
 async function initFirebaseAuth() {
-  const cfg = await fetchJson("GET", "/v1/auth/config");
-  if (cfg.auth !== "firebase" || !cfg.firebase?.enabled) return false;
+  const cfg = await resolveFirebaseConfig();
+  if (!cfg) return false;
 
   useFirebase = true;
   showFirebaseAuthUi();

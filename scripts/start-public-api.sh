@@ -10,6 +10,7 @@ python3 - <<'PY'
 from dotenv import load_dotenv
 import os, subprocess, sys
 load_dotenv(".env")
+load_dotenv(".env.vercel", override=True)
 os.environ["HARBOR_DEMO"] = "0"
 # Start uvicorn in background
 subprocess.Popen(

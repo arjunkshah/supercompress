@@ -819,22 +819,13 @@ footer a:hover { color: var(--text); }
   justify-content: center;
   gap: 10px;
   background: #fff;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   color: var(--text);
   margin-bottom: 0;
+  font-weight: 500;
 }
-.btn-google:hover { background: var(--surface-2); }
-.btn-google-icon {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #4285f4 0%, #34a853 50%, #fbbc05 75%, #ea4335 100%);
-  color: #fff;
-  font-size: 0.7rem;
-  font-weight: 700;
-  display: grid;
-  place-items: center;
-}
+.btn-google:hover { background: var(--bg-muted); }
+.btn-google-svg { flex-shrink: 0; }
 .auth-divider {
   display: flex;
   align-items: center;
