@@ -109,9 +109,40 @@ code, pre { font-family: var(--mono); font-size: 0.88em; }
 .hero-df {
   padding: 48px 0 0;
 }
+.hero-df-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
 .hero-df-copy {
   max-width: 720px;
   padding-bottom: 40px;
+}
+.hero-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 28px;
+  text-decoration: none;
+  color: var(--text);
+}
+.hero-brand-mark {
+  width: 28px;
+  height: 28px;
+  background: var(--text);
+  transform: rotate(45deg);
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.hero-brand-name {
+  font-size: 1.05rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+.hero-brand-name em {
+  font-style: normal;
+  color: var(--text-secondary);
+  font-weight: 500;
 }
 .hero-df-title {
   font-family: var(--serif);
@@ -136,12 +167,7 @@ code, pre { font-family: var(--mono); font-size: 0.88em; }
 }
 
 .hero-df-visual {
-  position: relative;
-  left: 50%;
-  width: 100vw;
-  max-width: 1200px;
-  transform: translateX(-50%);
-  padding: 0 24px 64px;
+  padding-bottom: 64px;
 }
 .product-mock {
   background: #fff;
