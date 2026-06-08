@@ -7,6 +7,14 @@ const TOKEN_KEY = "sc_token";
 const API_KEY_KEY = "sc_api_key";
 let useFirebase = false;
 let sessionSyncing = null;
+let currentFirebaseUser = null;
+let lastSyncedUid = null;
+let creatingKey = false;
+let pgRunning = false;
+let pgPhaseTimer = null;
+
+const DEFAULT_PG_TASKS = ["Ship onboarding flow", "Fix reminder timezone bug"];
+const DEFAULT_PG_REMINDERS = ["Call dentist Tuesday 3pm"];
 
 function apiPath(path) {
   const base = (window.SUPERCOMPRESS_API || "").replace(/\/$/, "");
@@ -73,20 +81,23 @@ function setHeaderUser(user) {
   const name = user.name || user.email?.split("@")[0] || "Account";
   const email = user.email || "";
   const initial = (name.charAt(0) || email.charAt(0) || "A").toUpperCase();
-  const pairs = [
-    ["#header-user-name", name],
-    ["#header-user-email", email],
-    ["#header-user-initial", initial],
-    ["#header-user-name-mobile", name],
-    ["#header-user-email-mobile", email],
-    ["#header-user-initial-mobile", initial],
-  ];
-  pairs.forEach(([sel, val]) => {
-    const el = $(sel);
-    if (el) el.textContent = val;
-  });
-  $("#header-user-pill")?.classList.remove("hidden");
-  $("#header-user-mobile")?.classList.remove("hidden");
+  const photo = currentFirebaseUser?.photoURL || user.photoURL || "";
+  const nameEl = $("#header-user-name");
+  const emailEl = $("#header-user-email");
+  const initialEl = $("#header-user-initial");
+  const photoEl = $("#header-user-photo");
+  if (nameEl) nameEl.textContent = name;
+  if (emailEl) emailEl.textContent = email;
+  if (initialEl) initialEl.textContent = initial;
+  if (photo && photoEl) {
+    photoEl.src = photo;
+    photoEl.classList.remove("hidden");
+    initialEl?.classList.add("hidden");
+  } else {
+    photoEl?.classList.add("hidden");
+    initialEl?.classList.remove("hidden");
+  }
+  $("#dash-profile")?.classList.remove("hidden");
 }
 
 function showAuth() {
@@ -94,8 +105,7 @@ function showAuth() {
   $("#dash-screen")?.classList.add("hidden");
   $("#logout-btn")?.classList.add("hidden");
   $("#logout-btn-mobile")?.classList.add("hidden");
-  $("#header-user-pill")?.classList.add("hidden");
-  $("#header-user-mobile")?.classList.add("hidden");
+  $("#dash-profile")?.classList.add("hidden");
 }
 
 function isApiOfflineError(err) {
@@ -159,13 +169,13 @@ function showDash(user) {
   }
   $("#auth-screen")?.classList.add("hidden");
   $("#dash-screen")?.classList.remove("hidden");
-  $("#logout-btn")?.classList.remove("hidden");
+  $("#dash-profile")?.classList.remove("hidden");
   $("#logout-btn-mobile")?.classList.remove("hidden");
   setHeaderUser(user);
   loadOverview();
   loadKeys();
   loadIntegrations();
-  updateQuickstart();
+  initPlayground();
   const saved = localStorage.getItem(API_KEY_KEY);
   if (saved && $("#pg-key")) $("#pg-key").value = saved;
   return true;
@@ -182,6 +192,10 @@ function fmtTime(ts) {
   return new Date(ts * 1000).toLocaleString();
 }
 
+function fmtNum(n) {
+  return Number(n || 0).toLocaleString();
+}
+
 const TOOLKIT_LABELS = {
   gmail: "Gmail",
   github: "GitHub",
@@ -190,19 +204,115 @@ const TOOLKIT_LABELS = {
   googlecalendar: "Google Calendar",
 };
 
+const TOOLKIT_LOGOS = {
+  gmail: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EA4335" d="M22 6.5V17.5C22 18.88 20.88 20 19.5 20H4.5C3.12 20 2 18.88 2 17.5V6.5L12 13.5L22 6.5Z"/><path fill="#FBBC05" d="M2 6.5L12 13.5L22 6.5L19.5 5H4.5L2 6.5Z"/><path fill="#34A853" d="M2 6.5V17.5C2 18.88 3.12 20 4.5 20H6L6 13.5L2 6.5Z"/><path fill="#4285F4" d="M22 6.5V17.5C22 18.88 20.88 20 19.5 20H18V13.5L22 6.5Z"/></svg>`,
+  github: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C6.477 2 2 6.484 2 12.021c0 4.428 2.865 8.184 6.839 9.504.5.092.682-.217.682-.483 0-.237-.009-.868-.014-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.021C22 6.484 17.522 2 12 2z"/></svg>`,
+  linear: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#5E6AD2" d="M3 3h8.5L3 11.5V3zm0 18h8.5L3 12.5V21zm10.5 0H21L13.5 12.5V21zM21 3h-7.5v8.5L21 3z"/></svg>`,
+  slack: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#E01E5A" d="M6 15a2 2 0 01-2 2 2 2 0 01-2-2 2 2 0 012-2h2v2zm1 0a2 2 0 012-2 2 2 0 012 2v5a2 2 0 01-2 2 2 2 0 01-2-2v-5z"/><path fill="#36C5F0" d="M9 6a2 2 0 01-2-2 2 2 0 012-2 2 2 0 012 2v2H9zm0 1a2 2 0 012 2 2 2 0 01-2 2H4a2 2 0 01-2-2 2 2 0 012-2h5z"/><path fill="#2EB67D" d="M18 9a2 2 0 012-2 2 2 0 012 2 2 2 0 01-2 2h-2V9zm-1 0a2 2 0 01-2 2 2 2 0 01-2-2V4a2 2 0 012-2 2 2 0 012 2v5z"/><path fill="#ECB22E" d="M15 18a2 2 0 012 2 2 2 0 01-2 2 2 2 0 01-2-2v-2h2zm0-1a2 2 0 01-2-2 2 2 0 012-2h5a2 2 0 012 2 2 2 0 01-2 2h-5z"/></svg>`,
+  googlecalendar: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M18 2h-1V0h-2v2H9V0H7v2H6a3 3 0 00-3 3v13a3 3 0 003 3h12a3 3 0 003-3V5a3 3 0 00-3-3zm1 16a1 1 0 01-1 1H6a1 1 0 01-1-1V9h14v9z"/><path fill="#EA4335" d="M7 12h3v3H7z"/></svg>`,
+};
+
+function toolkitLogo(id) {
+  return TOOLKIT_LOGOS[id] || `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="currentColor"/></svg>`;
+}
+
 function toolkitLabel(id) {
   return TOOLKIT_LABELS[id] || id.charAt(0).toUpperCase() + id.slice(1);
 }
 
-function toolkitIcon(id) {
-  const icons = {
-    gmail: "✉",
-    github: "⌘",
-    linear: "◆",
-    slack: "#",
-    googlecalendar: "◷",
-  };
-  return icons[id] || id.charAt(0).toUpperCase();
+function renderPgList(listEl, items, listId) {
+  if (!listEl) return;
+  listEl.innerHTML = items
+    .map(
+      (text, i) => `<li class="pg-item">
+        <span>${escapeHtml(text)}</span>
+        <button type="button" class="pg-item-remove" data-list="${listId}" data-index="${i}" aria-label="Remove">×</button>
+      </li>`
+    )
+    .join("");
+  $$(".pg-item-remove", listEl).forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const arr = getPgList(btn.dataset.list);
+      arr.splice(Number(btn.dataset.index), 1);
+      setPgList(btn.dataset.list, arr);
+    });
+  });
+}
+
+function getPgList(id) {
+  const key = `pg_${id}`;
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (raw) return JSON.parse(raw);
+  } catch (_) {
+    /* ignore */
+  }
+  return id === "tasks" ? [...DEFAULT_PG_TASKS] : [...DEFAULT_PG_REMINDERS];
+}
+
+function setPgList(id, items) {
+  sessionStorage.setItem(`pg_${id}`, JSON.stringify(items));
+  renderPgList($(`#pg-${id}`), items, id);
+}
+
+function initPlayground() {
+  renderPgList($("#pg-tasks"), getPgList("tasks"), "tasks");
+  renderPgList($("#pg-reminders"), getPgList("reminders"), "reminders");
+}
+
+function buildContextBlocks() {
+  const tasks = getPgList("tasks");
+  const reminders = getPgList("reminders");
+  const blocks = [];
+  if (tasks.length) blocks.push(`## User tasks\n${tasks.map((t) => `- ${t}`).join("\n")}`);
+  if (reminders.length) blocks.push(`## Reminders\n${reminders.map((r) => `- ${r}`).join("\n")}`);
+  return blocks;
+}
+
+function addPgItem(listId, inputId) {
+  const input = $(inputId);
+  const val = input?.value?.trim();
+  if (!val) return;
+  const items = getPgList(listId);
+  items.push(val);
+  setPgList(listId, items);
+  if (input) input.value = "";
+}
+
+const PG_PHASES = ["Tavily", "Composio", "SuperCompress", "Nebius"];
+
+function showPgRunning(out) {
+  out.innerHTML = `<div class="pg-running">
+    <div class="pg-spinner" aria-hidden="true"></div>
+    <p class="pg-running-label">Running agent turn…</p>
+    <div class="pg-phase-track" id="pg-phase-track">${PG_PHASES.map((p, i) =>
+      `<span class="pg-phase${i === 0 ? " active" : ""}">${p}</span>`
+    ).join("")}</div>
+  </div>`;
+  let step = 0;
+  clearInterval(pgPhaseTimer);
+  pgPhaseTimer = setInterval(() => {
+    step = (step + 1) % PG_PHASES.length;
+    $$(".pg-phase", out).forEach((el, i) => el.classList.toggle("active", i === step));
+  }, 1400);
+}
+
+function stopPgRunning() {
+  clearInterval(pgPhaseTimer);
+  pgPhaseTimer = null;
+}
+
+function setPgRunning(running) {
+  pgRunning = running;
+  const btn = $("#pg-run");
+  if (btn) {
+    btn.disabled = running;
+    btn.textContent = running ? "Running…" : "Run agent turn";
+    btn.setAttribute("aria-busy", running ? "true" : "false");
+  }
+  $$(".pg-form input, .pg-form button:not(#pg-run)").forEach((el) => {
+    if (el.id !== "pg-run") el.disabled = running;
+  });
 }
 
 async function loadOverview() {
@@ -274,45 +384,52 @@ async function loadKeys() {
 }
 
 function updateQuickstart() {
-  const key = localStorage.getItem(API_KEY_KEY) || "sc_live_YOUR_KEY";
-  const base = (window.SUPERCOMPRESS_API || "https://supercompress-api.onrender.com").replace(/\/$/, "");
-  $("#qs-curl").textContent = `curl -X POST ${base}/v1/agent/turn \\
-  -H "Content-Type: application/json" \\
-  -H "X-API-Key: ${key}" \\
-  -d '{
-    "query": "What should I focus on today?",
-    "context_blocks": [
-      "## User tasks\\n- Ship onboarding\\n- Fix reminder bug",
-      "## Reminders\\n- Dentist Tue 3pm"
-    ]
-  }'`;
-  $("#qs-python").textContent = `import httpx
+  /* Docs nav links to api.html */
+}
 
-r = httpx.post(
-    "${base}/v1/agent/turn",
-    headers={"X-API-Key": "${key}"},
-    json={
-        "query": user_message,
-        "context_blocks": [
-            f"## Tasks\\n{format_tasks(tasks)}",
-            f"## Reminders\\n{format_reminders(reminders)}",
-        ],
-    },
-    timeout=120,
-)
-data = r.json()
-# Tavily + Composio + SuperCompress + Nebius — every call
-print(data["answer"])  # show in your chat UI`;
-  $("#qs-js").textContent = `const res = await fetch("${base}/v1/agent/turn", {
-  method: "POST",
-  headers: { "Content-Type": "application/json", "X-API-Key": "${key}" },
-  body: JSON.stringify({
-    query: userMessage,
-    context_blocks: [tasksBlock, remindersBlock],
-  }),
-});
-const { answer, memory, stack } = await res.json();
-// stack: { tavily, composio, supercompress, nebius } — all true`;
+async function runPlayground() {
+  if (pgRunning) return;
+  const key = $("#pg-key")?.value?.trim();
+  const query = $("#pg-query")?.value?.trim() || "";
+  const out = $("#pg-result");
+  if (!key) {
+    out.innerHTML = '<p class="pg-placeholder">Enter your API key.</p>';
+    return;
+  }
+  localStorage.setItem(API_KEY_KEY, key);
+  setPgRunning(true);
+  showPgRunning(out);
+  const body = { query, context_blocks: buildContextBlocks() };
+  try {
+    const r = await fetch(apiPath("/v1/agent/turn"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "X-API-Key": key, "ngrok-skip-browser-warning": "1" },
+      body: JSON.stringify(body),
+    });
+    const text = await r.text();
+    let d = {};
+    try { d = JSON.parse(text); } catch { throw new Error("API returned invalid JSON."); }
+    if (!r.ok) throw new Error(d.detail || "Failed");
+    stopPgRunning();
+    const s = d.memory || {};
+    const phases = (d.phases || [])
+      .map((p) => `<li><code>${escapeHtml(p.phase)}</code> ${escapeHtml(p.detail)}</li>`)
+      .join("");
+    out.innerHTML = `<div class="result-grid">
+      <div class="stat"><span class="stat-n">${s.original_tokens ?? "—"}</span><span class="stat-l">tokens in</span></div>
+      <div class="stat"><span class="stat-n">${s.kept_tokens ?? "—"}</span><span class="stat-l">kept</span></div>
+      <div class="stat accent"><span class="stat-n">${s.kv_savings_pct ?? "—"}%</span><span class="stat-l">KV saved</span></div>
+    </div>
+    <p class="result-meta"><strong>Phases</strong></p><ul class="phase-list">${phases}</ul>
+    <p class="result-meta"><strong>Answer</strong></p>
+    <div class="result-preview">${escapeHtml(d.answer || "")}</div>`;
+    loadOverview();
+  } catch (e) {
+    stopPgRunning();
+    out.innerHTML = `<p class="pg-error">${escapeHtml(e.message)}</p>`;
+  } finally {
+    setPgRunning(false);
+  }
 }
 
 function escapeHtml(s) {
@@ -354,6 +471,8 @@ async function signup(name, email, password) {
 
 async function logout() {
   localStorage.removeItem(TOKEN_KEY);
+  lastSyncedUid = null;
+  currentFirebaseUser = null;
   if (useFirebase && window.ScFirebase?.ready) {
     try {
       await ScFirebase.signOut();
@@ -377,7 +496,7 @@ async function loadIntegrations() {
       const label = toolkitLabel(tk);
       return `<article class="int-card${on ? " int-card--on" : ""}">
         <div class="int-card-head">
-          <span class="int-card-icon" aria-hidden="true">${toolkitIcon(tk)}</span>
+          <span class="int-card-icon int-card-icon--logo">${toolkitLogo(tk)}</span>
           <div class="int-card-meta">
             <h3 class="int-card-name">${escapeHtml(label)}</h3>
             <span class="int-status${on ? " int-status--on" : ""}">${on ? "Connected" : "Not connected"}</span>
@@ -395,48 +514,6 @@ async function loadIntegrations() {
     });
   } catch (_) {
     el.innerHTML = '<p class="dash-empty">Sign in to manage Composio connections.</p>';
-  }
-}
-
-async function runPlayground() {
-  const key = $("#pg-key")?.value?.trim();
-  const query = $("#pg-query")?.value || "";
-  const contextRaw = $("#pg-context")?.value || "";
-  const out = $("#pg-result");
-  if (!key) {
-    out.textContent = "Enter your API key.";
-    return;
-  }
-  localStorage.setItem(API_KEY_KEY, key);
-  updateQuickstart();
-  out.innerHTML = '<p class="pg-loading">Tavily → Composio → your blocks → compress → Nebius… (30–60s)</p>';
-  const context_blocks = contextRaw.split("---").map((s) => s.trim()).filter(Boolean);
-  const body = context_blocks.length > 1
-    ? { query, context_blocks }
-    : { query, context_blocks: contextRaw.trim() ? [contextRaw.trim()] : [] };
-  try {
-    const r = await fetch(apiPath("/v1/agent/turn"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "X-API-Key": key },
-      body: JSON.stringify(body),
-    });
-    const d = await r.json();
-    if (!r.ok) throw new Error(d.detail || "Failed");
-    const s = d.memory;
-    const phases = (d.phases || [])
-      .map((p) => `<li><code>${escapeHtml(p.phase)}</code> ${escapeHtml(p.detail)}</li>`)
-      .join("");
-    out.innerHTML = `<div class="result-grid">
-      <div class="stat"><span class="stat-n">${s.original_tokens}</span><span class="stat-l">tokens in</span></div>
-      <div class="stat"><span class="stat-n">${s.kept_tokens}</span><span class="stat-l">kept</span></div>
-      <div class="stat accent"><span class="stat-n">${s.kv_savings_pct}%</span><span class="stat-l">KV saved</span></div>
-    </div>
-    <p class="result-meta"><strong>Phases</strong></p><ul class="phase-list">${phases}</ul>
-    <p class="result-meta"><strong>Answer</strong></p>
-    <pre class="result-preview">${escapeHtml(d.answer || "")}</pre>`;
-    loadOverview();
-  } catch (e) {
-    out.textContent = e.message;
   }
 }
 
@@ -489,6 +566,10 @@ function bindAuth() {
         btn.setAttribute("aria-busy", "true");
       }
       await ScFirebase.signInWithGoogle();
+      if (btn) {
+        btn.disabled = false;
+        btn.removeAttribute("aria-busy");
+      }
     } catch (err) {
       if (btn) {
         btn.disabled = false;
@@ -518,10 +599,14 @@ function friendlyAuthError(err) {
 
 async function syncFirebaseSession(user) {
   if (!user?.getIdToken) return false;
+  if (lastSyncedUid === user.uid && $("#dash-screen") && !$("#dash-screen").classList.contains("hidden")) {
+    return true;
+  }
   if (sessionSyncing) return sessionSyncing;
 
   sessionSyncing = (async () => {
     try {
+      currentFirebaseUser = user;
       const t = await user.getIdToken();
       localStorage.setItem(TOKEN_KEY, t);
       let profile = profileFromFirebase(user);
@@ -536,10 +621,12 @@ async function syncFirebaseSession(user) {
       if (!profile?.id && !profile?.email) {
         throw new Error("Could not load your profile. Try signing in again.");
       }
+      lastSyncedUid = user.uid;
       hideAuthError();
       setApiOfflineBanner(apiOffline);
       return showDash(profile);
     } catch (err) {
+      lastSyncedUid = null;
       localStorage.removeItem(TOKEN_KEY);
       setApiOfflineBanner(false);
       showAuth();
@@ -565,6 +652,10 @@ function bindDash() {
 
   $("#key-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
+    if (creatingKey) return;
+    creatingKey = true;
+    const submitBtn = $("#key-form button[type=submit]");
+    if (submitBtn) submitBtn.disabled = true;
     const name = new FormData(e.target).get("name") || "Default";
     try {
       const data = await api("POST", "/v1/dashboard/keys", { name });
@@ -572,10 +663,12 @@ function bindDash() {
       $("#key-full").textContent = data.api_key;
       $("#key-form").classList.add("hidden");
       $("#key-reveal").classList.remove("hidden");
-      updateQuickstart();
       if ($("#pg-key")) $("#pg-key").value = data.api_key;
     } catch (err) {
       alert(err.message);
+    } finally {
+      creatingKey = false;
+      if (submitBtn) submitBtn.disabled = false;
     }
   });
 
@@ -590,6 +683,15 @@ function bindDash() {
   });
 
   $("#pg-run")?.addEventListener("click", runPlayground);
+
+  $("#pg-task-add")?.addEventListener("click", () => addPgItem("tasks", "#pg-task-input"));
+  $("#pg-reminder-add")?.addEventListener("click", () => addPgItem("reminders", "#pg-reminder-input"));
+  $("#pg-task-input")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); addPgItem("tasks", "#pg-task-input"); }
+  });
+  $("#pg-reminder-input")?.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") { e.preventDefault(); addPgItem("reminders", "#pg-reminder-input"); }
+  });
 
   $("#key-modal")?.addEventListener("click", (e) => {
     if (e.target.id === "key-modal") hideKeyModal();
@@ -623,11 +725,16 @@ async function initFirebaseAuth() {
   showFirebaseAuthUi();
   await ScFirebase.init(cfg.firebase);
 
-  let authReady = false;
+  try {
+    await ScFirebase.completeRedirectSignIn();
+  } catch (err) {
+    showAuthError(friendlyAuthError(err));
+  }
+
   ScFirebase.onAuthStateChanged(async (user) => {
-    if (!authReady && !user) return;
-    authReady = true;
+    currentFirebaseUser = user;
     if (!user) {
+      lastSyncedUid = null;
       localStorage.removeItem(TOKEN_KEY);
       setApiOfflineBanner(false);
       showAuth();
@@ -635,16 +742,6 @@ async function initFirebaseAuth() {
     }
     await syncFirebaseSession(user);
   });
-
-  try {
-    const redirectUser = await ScFirebase.completeRedirectSignIn();
-    if (redirectUser) {
-      authReady = true;
-      await syncFirebaseSession(redirectUser);
-    }
-  } catch (err) {
-    showAuthError(friendlyAuthError(err));
-  }
   return true;
 }
 

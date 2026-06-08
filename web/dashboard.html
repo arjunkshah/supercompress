@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard — SuperCompress</title>
   <meta name="theme-color" content="rgb(251,251,248)" />
-  <link rel="stylesheet" href="assets/css/style.css?v=6" />
+  <link rel="stylesheet" href="assets/css/style.css?v=7" />
 </head>
 <body class="dash-page">
   <header class="df-header">
@@ -19,20 +19,16 @@
         <span class="df-logo-word">super<em>compress</em></span>
       </a>
       <div class="df-header-end">
-        <nav class="df-nav-pill" aria-label="Main">
-          <a href="index.html">Home</a>
-          <a href="app.html">Demo</a>
-          <a href="api.html">Docs</a>
-        </nav>
-        <div class="dash-header-user hidden" id="header-user-pill">
-          <span class="dash-header-avatar" id="header-user-initial" aria-hidden="true">A</span>
-          <span class="dash-header-meta">
-            <span class="dash-header-name" id="header-user-name">Account</span>
-            <span class="dash-header-email" id="header-user-email"></span>
-          </span>
-        </div>
-        <div class="df-cta-pill">
-          <button type="button" id="logout-btn" class="df-logout-btn hidden">Sign out</button>
+        <div class="dash-profile hidden" id="dash-profile">
+          <button type="button" class="dash-profile-btn" id="header-avatar-btn" aria-label="Account menu" aria-haspopup="true">
+            <img class="dash-profile-photo hidden" id="header-user-photo" alt="" referrerpolicy="no-referrer" />
+            <span class="dash-profile-initial" id="header-user-initial" aria-hidden="true">A</span>
+          </button>
+          <div class="dash-profile-dropdown" role="menu">
+            <p class="dash-profile-dropdown-name" id="header-user-name">Account</p>
+            <p class="dash-profile-dropdown-email" id="header-user-email"></p>
+            <button type="button" id="logout-btn" class="dash-profile-signout" role="menuitem">Sign out</button>
+          </div>
         </div>
       </div>
       <button type="button" class="df-menu-btn" id="df-menu-btn" aria-label="Open menu" aria-expanded="false">
@@ -40,16 +36,6 @@
       </button>
     </div>
     <div class="df-mobile-nav hidden" id="df-mobile-nav">
-      <div class="dash-mobile-user hidden" id="header-user-mobile">
-        <span class="dash-header-avatar" id="header-user-initial-mobile" aria-hidden="true">A</span>
-        <span class="dash-header-meta">
-          <span class="dash-header-name" id="header-user-name-mobile">Account</span>
-          <span class="dash-header-email" id="header-user-email-mobile"></span>
-        </span>
-      </div>
-      <a href="index.html">Home</a>
-      <a href="app.html">Demo</a>
-      <a href="api.html">Docs</a>
       <button type="button" id="logout-btn-mobile" class="df-logout-mobile hidden">Sign out</button>
     </div>
   </header>
@@ -102,7 +88,7 @@
         <button type="button" class="dash-nav-item" data-view="keys">API keys</button>
         <button type="button" class="dash-nav-item" data-view="integrations">Integrations</button>
         <button type="button" class="dash-nav-item" data-view="playground">Playground</button>
-        <button type="button" class="dash-nav-item" data-view="quickstart">Quickstart</button>
+        <a href="api.html" class="dash-nav-item dash-nav-link">Docs</a>
       </nav>
     </aside>
 
@@ -155,7 +141,7 @@
 
       <!-- Playground -->
       <section class="dash-view hidden" id="view-playground">
-        <header class="dash-header">
+        <header class="dash-header dash-header-compact">
           <h1>Playground</h1>
           <p>Run a full agent turn — Tavily, Composio, compress, Nebius in one call.</p>
         </header>
@@ -167,17 +153,29 @@
             </div>
             <div class="pg-field">
               <label class="field-label" for="pg-query">User query</label>
-              <textarea class="field-textarea pg-query" id="pg-query" rows="3">What should I focus on today?</textarea>
+              <input class="field-input" id="pg-query" type="text" value="What should I focus on today?" />
             </div>
-            <div class="pg-field">
-              <label class="field-label" for="pg-context">App context blocks</label>
-              <p class="field-hint">Markdown blocks from your app — tasks, reminders, session state.</p>
-              <textarea class="field-textarea pg-context" id="pg-context" rows="10">## User tasks
-- Ship onboarding flow
-- Fix reminder timezone bug
-
-## Reminders
-- Call dentist Tuesday 3pm</textarea>
+            <div class="pg-field pg-field-grow">
+              <label class="field-label">Context from your app</label>
+              <p class="field-hint">Tasks and reminders your agent already knows about.</p>
+              <div class="pg-context-grid">
+                <div class="pg-context-block">
+                  <span class="pg-context-label">Tasks</span>
+                  <ul class="pg-item-list" id="pg-tasks"></ul>
+                  <div class="pg-add-row">
+                    <input class="field-input pg-add-input" id="pg-task-input" type="text" placeholder="Add a task…" />
+                    <button type="button" class="btn btn-outline btn-sm" id="pg-task-add">Add</button>
+                  </div>
+                </div>
+                <div class="pg-context-block">
+                  <span class="pg-context-label">Reminders</span>
+                  <ul class="pg-item-list" id="pg-reminders"></ul>
+                  <div class="pg-add-row">
+                    <input class="field-input pg-add-input" id="pg-reminder-input" type="text" placeholder="Add a reminder…" />
+                    <button type="button" class="btn btn-outline btn-sm" id="pg-reminder-add">Add</button>
+                  </div>
+                </div>
+              </div>
             </div>
             <button type="button" class="btn btn-pear btn-block" id="pg-run">Run agent turn</button>
           </div>
@@ -189,28 +187,6 @@
           </div>
         </div>
       </section>
-
-      <!-- Quickstart -->
-      <section class="dash-view hidden" id="view-quickstart">
-        <header class="dash-header">
-          <h1>Quickstart</h1>
-          <p>Copy into your agent loop — replace <code>YOUR_KEY</code> with a key from the Keys tab.</p>
-        </header>
-        <div class="qs-grid">
-          <div class="dash-panel">
-            <h2 class="dash-panel-title">curl</h2>
-            <pre class="install" id="qs-curl"></pre>
-          </div>
-          <div class="dash-panel">
-            <h2 class="dash-panel-title">Python</h2>
-            <pre class="install" id="qs-python"></pre>
-          </div>
-          <div class="dash-panel">
-            <h2 class="dash-panel-title">JavaScript</h2>
-            <pre class="install" id="qs-js"></pre>
-          </div>
-        </div>
-      </section>
     </main>
   </div>
 
@@ -218,10 +194,10 @@
   <div class="modal hidden" id="key-modal">
     <div class="modal-card">
       <h2 id="modal-title">Create API key</h2>
-      <form id="key-form">
+      <form id="key-form" class="key-form">
         <label class="field-label">Key name</label>
         <input class="field-input" name="name" value="Production" required />
-        <button type="submit" class="btn btn-pear btn-block">Create</button>
+        <button type="submit" class="btn btn-pear btn-block key-form-submit">Create</button>
       </form>
       <div class="key-reveal hidden" id="key-reveal">
         <p class="warn-text">Copy now — you won't see this again.</p>
@@ -233,8 +209,8 @@
   </div>
 
   <script src="assets/js/config.js"></script>
-  <script src="assets/js/firebase-auth.js?v=2"></script>
+  <script src="assets/js/firebase-auth.js?v=3"></script>
   <script src="assets/js/site.js?v=4"></script>
-  <script src="assets/js/dashboard.js?v=6"></script>
+  <script src="assets/js/dashboard.js?v=7"></script>
 </body>
 </html>

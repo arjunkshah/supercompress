@@ -56,9 +56,18 @@
     return cred;
   }
 
-  /** Redirect flow — avoids Cross-Origin-Opener-Policy popup issues on Vercel. */
+  /** Popup first (reliable on dashboard); redirect fallback if blocked. */
   async function signInWithGoogle() {
-    await auth().signInWithRedirect(googleProvider());
+    try {
+      return await auth().signInWithPopup(googleProvider());
+    } catch (err) {
+      const code = err?.code || "";
+      if (code === "auth/popup-blocked" || code === "auth/cancelled-popup-request") {
+        await auth().signInWithRedirect(googleProvider());
+        return null;
+      }
+      throw err;
+    }
   }
 
   /** Call once on page load after init to finish a Google redirect sign-in. */
