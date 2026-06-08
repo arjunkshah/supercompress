@@ -16,6 +16,7 @@ from fastapi import Depends, HTTPException, Request, Security
 from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 
 from supercompress.stack import db
+from supercompress.stack.firebase_auth import verify_id_token
 
 PBKDF2_ITERATIONS = 260_000
 API_KEY_PREFIX = "sc_live_"
@@ -149,18 +150,39 @@ def require_api_key(
     return record
 
 
+def _user_from_firebase_token(token: str) -> Optional[Dict[str, Any]]:
+    claims = verify_id_token(token)
+    if not claims:
+        return None
+    uid = str(claims.get("uid") or claims.get("sub") or "")
+    if not uid:
+        return None
+    email = str(claims.get("email") or "")
+    name = str(claims.get("name") or claims.get("display_name") or "")
+    return db.upsert_firebase_user(uid, email, name)
+
+
 def require_user(
     bearer: Optional[HTTPAuthorizationCredentials] = Security(bearer_scheme),
 ) -> Dict[str, Any]:
     if not bearer or not bearer.credentials:
         raise HTTPException(status_code=401, detail="Sign in required.")
-    user_id = decode_session_token(bearer.credentials)
-    if not user_id:
-        raise HTTPException(status_code=401, detail="Session expired. Sign in again.")
-    user = db.get_user_by_id(user_id)
-    if not user:
-        raise HTTPException(status_code=401, detail="User not found.")
-    return user
+    token = bearer.credentials.strip()
+
+    # Firebase ID token (dashboard)
+    if not token.startswith(API_KEY_PREFIX):
+        fb_user = _user_from_firebase_token(token)
+        if fb_user:
+            return fb_user
+
+    # Legacy session JWT (local / tests)
+    user_id = decode_session_token(token)
+    if user_id:
+        user = db.get_user_by_id(user_id)
+        if user:
+            return user
+
+    raise HTTPException(status_code=401, detail="Session expired. Sign in again.")
 
 
 def log_request_usage(request: Request, endpoint: str, stats: Dict[str, Any]) -> None:

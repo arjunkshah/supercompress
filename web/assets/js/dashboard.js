@@ -5,6 +5,7 @@ const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
 const TOKEN_KEY = "sc_token";
 const API_KEY_KEY = "sc_api_key";
+let useFirebase = false;
 
 function apiPath(path) {
   const base = (window.SUPERCOMPRESS_API || "").replace(/\/$/, "");
@@ -15,8 +16,13 @@ function token() {
   return localStorage.getItem(TOKEN_KEY) || "";
 }
 
-function authHeaders() {
-  return { Authorization: `Bearer ${token()}`, "Content-Type": "application/json" };
+async function authHeaders() {
+  let t = token();
+  if (useFirebase && window.ScFirebase?.ready) {
+    t = (await ScFirebase.getIdToken(true)) || t;
+    if (t) localStorage.setItem(TOKEN_KEY, t);
+  }
+  return { Authorization: `Bearer ${t}`, "Content-Type": "application/json" };
 }
 
 async function fetchJson(method, path, body, headers = {}) {
@@ -30,7 +36,7 @@ async function fetchJson(method, path, body, headers = {}) {
 }
 
 async function api(method, path, body) {
-  return fetchJson(method, path, body, authHeaders());
+  return fetchJson(method, path, body, await authHeaders());
 }
 
 function showAuth() {
@@ -195,19 +201,34 @@ function hideKeyModal() {
 }
 
 async function login(email, password) {
+  if (useFirebase) {
+    await ScFirebase.signInWithEmail(email, password);
+    return;
+  }
   const data = await fetchJson("POST", "/v1/auth/login", { email, password });
   localStorage.setItem(TOKEN_KEY, data.token);
   showDash(data.user);
 }
 
 async function signup(name, email, password) {
+  if (useFirebase) {
+    await ScFirebase.createUserWithEmail(email, password, name);
+    return;
+  }
   const data = await fetchJson("POST", "/v1/auth/signup", { name, email, password });
   localStorage.setItem(TOKEN_KEY, data.token);
   showDash(data.user);
 }
 
-function logout() {
+async function logout() {
   localStorage.removeItem(TOKEN_KEY);
+  if (useFirebase && window.ScFirebase?.ready) {
+    try {
+      await ScFirebase.signOut();
+    } catch (_) {
+      /* ignore */
+    }
+  }
   showAuth();
 }
 
@@ -313,7 +334,17 @@ function bindAuth() {
     }
   });
 
-  $("#logout-btn")?.addEventListener("click", logout);
+  $("#logout-btn")?.addEventListener("click", () => logout());
+
+  $("#google-signin-btn")?.addEventListener("click", async () => {
+    const el = $("#auth-error");
+    try {
+      await ScFirebase.signInWithGoogle();
+    } catch (err) {
+      el.textContent = err.message || "Google sign-in failed";
+      el.classList.remove("hidden");
+    }
+  });
 }
 
 function bindDash() {
@@ -359,16 +390,55 @@ function bindDash() {
   });
 }
 
+function showFirebaseAuthUi() {
+  $("#google-signin-btn")?.classList.remove("hidden");
+  $("#auth-divider")?.classList.remove("hidden");
+}
+
+async function initFirebaseAuth() {
+  const cfg = await fetchJson("GET", "/v1/auth/config");
+  if (cfg.auth !== "firebase" || !cfg.firebase?.enabled) return false;
+
+  useFirebase = true;
+  showFirebaseAuthUi();
+  await ScFirebase.init(cfg.firebase);
+
+  ScFirebase.onAuthStateChanged(async (user) => {
+    if (!user) {
+      localStorage.removeItem(TOKEN_KEY);
+      showAuth();
+      return;
+    }
+    const t = await user.getIdToken();
+    localStorage.setItem(TOKEN_KEY, t);
+    try {
+      const data = await api("GET", "/v1/dashboard/me");
+      showDash(data.user);
+    } catch (_) {
+      localStorage.removeItem(TOKEN_KEY);
+      showAuth();
+    }
+  });
+  return true;
+}
+
 async function init() {
   bindAuth();
   bindDash();
+
+  try {
+    if (await initFirebaseAuth()) return;
+  } catch (e) {
+    console.warn("Firebase auth unavailable, using legacy login:", e.message);
+  }
+
   if (token()) {
     try {
       const data = await api("GET", "/v1/dashboard/me");
       showDash(data.user);
       return;
     } catch (_) {
-      logout();
+      await logout();
     }
   }
   showAuth();

@@ -24,6 +24,11 @@
     <div class="auth-card">
       <h1>Developer dashboard</h1>
       <p class="auth-sub">API keys for the full agent stack — Tavily, Composio, SuperCompress, Nebius in one call.</p>
+      <button type="button" id="google-signin-btn" class="btn btn-google btn-block hidden">
+        <span class="btn-google-icon" aria-hidden="true">G</span>
+        Continue with Google
+      </button>
+      <p class="auth-divider hidden" id="auth-divider"><span>or</span></p>
       <div class="auth-tabs">
         <button type="button" class="auth-tab active" data-tab="login">Sign in</button>
         <button type="button" class="auth-tab" data-tab="signup">Sign up</button>
@@ -172,6 +177,7 @@
   </div>
 
   <script src="assets/js/config.js"></script>
+  <script src="assets/js/firebase-auth.js"></script>
   <script src="assets/js/dashboard.js"></script>
 </body>
 </html>

@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 from supercompress.stack import auth, db
 from supercompress.stack.composio import get_composio
 from supercompress.stack.config import settings_for_user
+from supercompress.stack.firebase_auth import firebase_enabled, public_config
 
 router = APIRouter(tags=["Dashboard"])
 
@@ -52,8 +53,23 @@ def _public_user(user: Dict[str, Any]) -> Dict[str, Any]:
     return {"id": user["id"], "email": user["email"], "name": user.get("name", ""), "created_at": user["created_at"]}
 
 
+@router.get("/auth/config")
+def auth_config() -> Dict[str, Any]:
+    """Public Firebase web config for dashboard client."""
+    cfg = public_config()
+    return {
+        "firebase": cfg,
+        "auth": "firebase" if cfg.get("enabled") else "legacy",
+    }
+
+
 @router.post("/auth/signup", response_model=AuthResponse)
 def signup(req: SignupRequest) -> AuthResponse:
+    if firebase_enabled() and public_config().get("enabled"):
+        raise HTTPException(
+            status_code=400,
+            detail="Sign up via Firebase on the dashboard (email or Google).",
+        )
     email = req.email.strip().lower()
     if not _EMAIL_RE.match(email):
         raise HTTPException(status_code=400, detail="Invalid email address.")
@@ -67,6 +83,8 @@ def signup(req: SignupRequest) -> AuthResponse:
 
 @router.post("/auth/login", response_model=AuthResponse)
 def login(req: LoginRequest) -> AuthResponse:
+    if firebase_enabled() and public_config().get("enabled"):
+        raise HTTPException(status_code=400, detail="Sign in via Firebase on the dashboard.")
     user = db.get_user_by_email(req.email)
     if not user or not auth.verify_password(req.password, user["password_hash"]):
         raise HTTPException(status_code=401, detail="Invalid email or password.")

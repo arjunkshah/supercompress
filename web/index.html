@@ -9,16 +9,12 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>◆</text></svg>" />
 </head>
 <body>
-  <div class="banner">
-    Agent memory API for builders — <a href="dashboard.html">Get your API key</a>
-  </div>
-
   <nav class="nav">
     <div class="nav-inner">
       <a href="index.html" class="logo">super<em>compress</em></a>
       <div class="nav-links">
-        <a href="#stack">Stack</a>
         <a href="#features">Features</a>
+        <a href="#faq">FAQ</a>
         <a href="api.html">Docs</a>
         <a href="dashboard.html" class="btn btn-primary btn-sm">Dashboard</a>
       </div>
@@ -26,186 +22,237 @@
   </nav>
 
   <main>
-    <section class="hero-wrap">
-      <div class="hero-grid" aria-hidden="true" id="hero-grid"></div>
-      <div class="hero-orb hero-orb--1" aria-hidden="true"></div>
-      <div class="hero-orb hero-orb--2" aria-hidden="true"></div>
-
-      <div class="hero-exa">
-        <p class="hero-badge reveal" data-delay="0">
-          <span class="hero-badge-dot"></span>
-          Tavily · Composio · Nebius — every call
+    <!-- Hero (Datafruit: compact copy, then full-width product) -->
+    <section class="hero-df">
+      <div class="wrap hero-df-copy">
+        <h1 class="hero-df-title">The agent memory API for AI apps</h1>
+        <p class="hero-df-lead">
+          SuperCompress helps builders run search, connected apps, compression, and inference in one traceable call — so context stays under budget, sponsors stay on every turn, and you ship faster.
         </p>
-        <h1 class="hero-title">
-          <span class="reveal-line"><span class="reveal" data-delay="1">Agent memory,</span></span>
-          <span class="reveal-line"><span class="reveal hero-accent" data-delay="2">built for AI apps</span></span>
-        </h1>
-        <p class="lead reveal" data-delay="3">One API for search, apps, compression, and inference.<br class="hero-br" /> Replace OpenAI — sponsors run automatically.</p>
-        <div class="hero-actions reveal" data-delay="4">
-          <a href="dashboard.html" class="btn btn-primary btn-glow">Try API for free</a>
-          <a href="api.html" class="btn btn-ghost">Read docs</a>
-        </div>
-        <div class="hero-stack reveal" data-delay="5" id="hero-stack">
-          <span class="stack-step active" data-step="0">Query</span>
-          <span class="stack-arrow">→</span>
-          <span class="stack-step" data-step="1">Tavily</span>
-          <span class="stack-arrow">→</span>
-          <span class="stack-step" data-step="2">Composio</span>
-          <span class="stack-arrow">→</span>
-          <span class="stack-step stack-core" data-step="3">Compress</span>
-          <span class="stack-arrow">→</span>
-          <span class="stack-step" data-step="4">Nebius</span>
+        <div class="hero-df-actions">
+          <a href="dashboard.html" class="btn btn-primary">Get API key</a>
+          <a href="api.html" class="btn btn-outline">Read docs</a>
         </div>
       </div>
 
-      <div class="wrap hero-panel-wrap">
-      <div class="api-panel reveal-scale" data-delay="6" id="api-demo">
-        <div class="api-panel-top">
-          <button type="button" class="api-tab active" data-tab="request">Request</button>
-          <button type="button" class="api-tab" data-tab="response">Response</button>
-        </div>
-        <div class="api-panel-body">
-          <div class="api-pills">
-            <span class="pill active">agent/turn</span>
-            <span class="pill">POST</span>
-            <span class="pill">~45s</span>
+      <div class="hero-df-visual">
+        <div class="product-mock" id="product-mock">
+          <div class="mock-toolbar">
+            <div class="mock-dots"><span></span><span></span><span></span></div>
+            <span class="mock-title">Timmy · Agent turn</span>
+            <span class="mock-badge">POST /v1/agent/turn</span>
           </div>
-          <pre class="api-code" id="api-code-request"><span class="kw">POST</span> /v1/agent/turn
+          <div class="mock-layout">
+            <aside class="mock-sidebar">
+              <p class="mock-label">Stack</p>
+              <ul class="mock-stack" id="mock-stack">
+                <li class="active" data-phase="query">Query</li>
+                <li data-phase="tavily">Tavily</li>
+                <li data-phase="composio">Composio</li>
+                <li data-phase="compress">Compress</li>
+                <li data-phase="nebius">Nebius</li>
+              </ul>
+              <p class="mock-label">Context blocks</p>
+              <div class="mock-block">## Tasks<br>Ship onboarding</div>
+              <div class="mock-block">## Reminders<br>Dentist Tue 3pm</div>
+            </aside>
+            <div class="mock-main">
+              <div class="mock-query">
+                <span class="mock-avatar">U</span>
+                <p>What should I focus on today?</p>
+              </div>
+              <div class="mock-agent">
+                <span class="mock-avatar agent">SC</span>
+                <div class="mock-response">
+                  <p class="mock-meta">Reviewed 4 sources · 65% KV saved</p>
+                  <p>Review PR #42 first — it blocks onboarding. Then prep for the dentist reminder Tuesday at 3pm.</p>
+                  <div class="mock-phases">
+                    <span class="mock-phase done">tavily</span>
+                    <span class="mock-phase done">composio</span>
+                    <span class="mock-phase done">memory</span>
+                    <span class="mock-phase active">nebius</span>
+                  </div>
+                </div>
+              </div>
+              <div class="mock-code">
+                <button type="button" class="api-tab active" data-tab="request">Request</button>
+                <button type="button" class="api-tab" data-tab="response">Response</button>
+                <pre class="api-code" id="api-code-request"><span class="kw">POST</span> /v1/agent/turn
 <span class="kw">X-API-Key:</span> sc_live_••••
 
 {
   <span class="str">"query"</span>: "What should I focus on today?",
-  <span class="str">"context_blocks"</span>: [
-    "## Tasks\n- Ship onboarding",
-    "## Reminders\n- Dentist Tue 3pm"
-  ]
+  <span class="str">"context_blocks"</span>: ["## Tasks…", "## Reminders…"]
 }</pre>
-          <pre class="api-code hidden" id="api-code-response">{
-  <span class="str">"answer"</span>: "Review PR #42 first, then…",
+                <pre class="api-code hidden" id="api-code-response">{
+  <span class="str">"answer"</span>: "Review PR #42 first…",
   <span class="str">"memory"</span>: { <span class="str">"kv_savings_pct"</span>: 65.0 },
-  <span class="str">"stack"</span>: {
-    <span class="str">"tavily"</span>: true,
-    <span class="str">"composio"</span>: true,
-    <span class="str">"supercompress"</span>: true,
-    <span class="str">"nebius"</span>: true
-  },
-  <span class="str">"phases"</span>: ["tavily", "composio", "memory", "nebius"]
+  <span class="str">"stack"</span>: { <span class="str">"tavily"</span>: true, <span class="str">"composio"</span>: true,
+    <span class="str">"supercompress"</span>: true, <span class="str">"nebius"</span>: true }
 }</pre>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      </div>
     </section>
 
-    <section class="section wrap reveal-section" id="stack">
-      <p class="section-label">The stack</p>
-      <h2 class="section-title">Every sponsor. Every call. No exceptions.</h2>
-      <p class="section-lead">Pass your app state. We run the full pipeline — web research, connected apps, memory compression, Nebius inference.</p>
-      <div class="flow-row">
-        <span class="flow-chip">Your query</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-chip">Tavily</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-chip">Composio</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-chip core">SuperCompress</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-chip">Nebius</span>
-        <span class="flow-arrow">→</span>
-        <span class="flow-chip">Answer</span>
-      </div>
-      <div class="metrics">
-        <div class="metric"><span class="metric-n">65%</span><span class="metric-l">KV saved</span></div>
-        <div class="metric"><span class="metric-n">4</span><span class="metric-l">Sponsors / call</span></div>
-        <div class="metric"><span class="metric-n">1</span><span class="metric-l">HTTP endpoint</span></div>
-        <div class="metric"><span class="metric-n">0</span><span class="metric-l">Keys you host</span></div>
-      </div>
-    </section>
-
+    <!-- Features intro -->
     <section class="section wrap reveal-section" id="features">
-      <p class="section-label">How it works</p>
-      <h2 class="section-title">Everything your agent needs in one place</h2>
-      <div class="feature-tabs" id="feature-tabs">
-        <button type="button" class="feature-tab active" data-f="tavily">Tavily search</button>
-        <button type="button" class="feature-tab" data-f="composio">Composio apps</button>
-        <button type="button" class="feature-tab" data-f="compress">Memory layer</button>
-        <button type="button" class="feature-tab" data-f="nebius">Nebius inference</button>
-      </div>
-      <div class="feature-pane active" data-pane="tavily">
-        <div class="card card-accent">
-          <span class="tag">Tavily</span>
-          <h3>Live web context on every turn</h3>
-          <p>Your user's question triggers real-time research. That's what creates the bloat — and why compression matters.</p>
+      <h2 class="section-title-lg">Agents fail on context bloat. We built SuperCompress to fix it.</h2>
+    </section>
+
+    <!-- Feature rows (alternating like Datafruit) -->
+    <section class="feature-row reveal-section">
+      <div class="wrap feature-row-inner">
+        <div class="feature-copy">
+          <h3>Every sponsor, every call.</h3>
+          <p>Tavily search, Composio apps, learned compression, and Nebius inference run in one pipeline. No wiring four vendors — pass your app state and get an answer back.</p>
         </div>
-      </div>
-      <div class="feature-pane" data-pane="composio">
-        <div class="card card-accent">
-          <span class="tag">Composio</span>
-          <h3>Your connected apps, every call</h3>
-          <p>Connect Gmail, GitHub, Linear in the dashboard. We gather snapshots and execute tools through Nebius.</p>
-        </div>
-      </div>
-      <div class="feature-pane" data-pane="compress">
-        <div class="card card-accent">
-          <span class="tag">SuperCompress</span>
-          <h3>Learned eviction before inference</h3>
-          <p>Tavily + Composio + your context_blocks merged and trimmed. ~65% KV savings so turn 4 doesn't OOM.</p>
-        </div>
-      </div>
-      <div class="feature-pane" data-pane="nebius">
-        <div class="card card-accent">
-          <span class="tag">Nebius</span>
-          <h3>Answer on compressed context</h3>
-          <p>Replace your OpenAI call. Return <code>answer</code> straight to your chat UI. Faster, cheaper, still accurate.</p>
+        <div class="feature-visual feature-visual--flow">
+          <div class="flow-pipeline">
+            <span>Query</span><i>→</i><span>Tavily</span><i>→</i><span>Composio</span><i>→</i><span class="core">Compress</span><i>→</i><span>Nebius</span>
+          </div>
+          <div class="metrics metrics--compact">
+            <div class="metric"><span class="metric-n">65%</span><span class="metric-l">KV saved</span></div>
+            <div class="metric"><span class="metric-n">4</span><span class="metric-l">Sponsors</span></div>
+            <div class="metric"><span class="metric-n">1</span><span class="metric-l">Endpoint</span></div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="section wrap reveal-section">
-      <p class="section-label">For builders</p>
-      <h2 class="section-title">Built for how you ship</h2>
-      <div class="grid-3">
-        <div class="card">
-          <h3>Productivity apps</h3>
-          <p>Pass tasks and reminders as <code>context_blocks</code>. Connect Gmail for user email flows.</p>
+    <section class="feature-row feature-row--alt reveal-section">
+      <div class="wrap feature-row-inner feature-row-inner--reverse">
+        <div class="feature-copy">
+          <h3>Your app context, compressed before inference.</h3>
+          <p>Pass tasks, reminders, and app state as <code>context_blocks</code>. We merge Tavily + Composio results, evict noise, and keep turn 4 from OOMing your agent.</p>
         </div>
-        <div class="card">
-          <h3>Dev tools</h3>
-          <p>GitHub + Linear in Composio. Tavily for docs and market context. One API call per turn.</p>
-        </div>
-        <div class="card">
-          <h3>Agent startups</h3>
-          <p>Stop wiring four vendors. Sponsors run hosted — you ship the product.</p>
-        </div>
-      </div>
-    </section>
-
-    <section class="section wrap reveal-section">
-      <div class="quote-grid">
-        <div class="quote-card">
-          <blockquote>"I stopped calling OpenAI. One POST and Tavily, Composio, compression, and Nebius just happen."</blockquote>
-          <cite>— Timmy, productivity app builder</cite>
-        </div>
-        <div class="quote-card">
-          <blockquote>"Turn 4 used to kill our agent. Now context stays under budget every single call."</blockquote>
-          <cite>— Agent team using SuperCompress</cite>
+        <div class="feature-visual">
+          <div class="visual-card">
+            <span class="tag">Memory layer</span>
+            <div class="bar-compare">
+              <div class="bar-row"><span>Raw context</span><div class="bar-track"><div class="bar bar-raw" style="width:100%"></div></div><em>12.4k</em></div>
+              <div class="bar-row"><span>Compressed</span><div class="bar-track"><div class="bar bar-sc" style="width:35%"></div></div><em>4.3k</em></div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="cta-section reveal-section">
-      <h2>Your agents deserve better memory</h2>
-      <p>Free API keys. Connect Composio. Ship in an afternoon.</p>
-      <a href="dashboard.html" class="btn btn-primary">Open dashboard</a>
+    <section class="feature-row reveal-section">
+      <div class="wrap feature-row-inner">
+        <div class="feature-copy">
+          <h3>Connect Composio once. Ship in an afternoon.</h3>
+          <p>Link Gmail, GitHub, Linear in the dashboard. Every API call gathers snapshots and runs tools — replace your OpenAI call with one POST.</p>
+        </div>
+        <div class="feature-visual">
+          <div class="visual-card visual-card--integrations">
+            <div class="int-row"><strong>gmail</strong><span class="int-on">Connected</span></div>
+            <div class="int-row"><strong>github</strong><span class="int-on">Connected</span></div>
+            <div class="int-row"><strong>linear</strong><span class="int-pending">Connect</span></div>
+            <div class="int-row dim">Tavily + Nebius hosted by us</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Editorial -->
+    <section class="editorial reveal-section">
+      <div class="wrap">
+        <p>For years, agent teams stitched together search APIs, tool routers, compression hacks, and inference providers — every turn a new integration project. Context grew until turn four killed the loop. That era is over. The next generation of AI apps will win on memory: what you keep, what you drop, and how fast you ship. SuperCompress runs the full sponsor stack so builders focus on product, not plumbing.</p>
+      </div>
+    </section>
+
+    <!-- Trust -->
+    <section class="section wrap reveal-section" id="trust">
+      <h2 class="section-title">Built for production agents</h2>
+      <div class="trust-grid">
+        <div class="trust-card">
+          <p class="trust-label">API keys</p>
+          <h3>Keys with usage you can see</h3>
+          <p>Create keys in the dashboard, track tokens in and out, and revoke instantly when you rotate.</p>
+          <ul>
+            <li>Per-key usage stats</li>
+            <li>Hosted sponsor keys</li>
+            <li>Revoke in one click</li>
+          </ul>
+        </div>
+        <div class="trust-card">
+          <p class="trust-label">Stack</p>
+          <h3>Sponsors run on every call</h3>
+          <p>Tavily, Composio, SuperCompress, and Nebius are not optional add-ons — they're the default path.</p>
+          <ul>
+            <li>Traceable phases per turn</li>
+            <li>Composio per-user in dashboard</li>
+            <li>One HTTP endpoint</li>
+          </ul>
+        </div>
+        <div class="trust-card">
+          <p class="trust-label">Deploy</p>
+          <h3>Same-origin on Vercel</h3>
+          <p>Dashboard and docs proxy to the public API. No CORS gymnastics for your frontend.</p>
+          <ul>
+            <li>Vercel + Render blueprint</li>
+            <li>Firebase or legacy auth</li>
+            <li>OpenAPI docs included</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section wrap reveal-section" id="faq">
+      <h2 class="section-title">Questions &amp; Answers</h2>
+      <div class="faq-list" id="faq-list">
+        <details class="faq-item">
+          <summary>What does one API call actually do?</summary>
+          <p>POST <code>/v1/agent/turn</code> runs Tavily search, gathers your Composio apps, merges your <code>context_blocks</code>, compresses memory, and answers via Nebius — in order, every time.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Do I need my own Tavily or Nebius keys?</summary>
+          <p>No. Sponsor keys are hosted on our API. You only connect Composio in the dashboard for per-user app access.</p>
+        </details>
+        <details class="faq-item">
+          <summary>How do I integrate in my app?</summary>
+          <p>Pass your user's message as <code>query</code> and serialize tasks, reminders, or state as <code>context_blocks</code>. Show <code>answer</code> in your chat UI.</p>
+        </details>
+        <details class="faq-item">
+          <summary>Can I use just compression?</summary>
+          <p>Yes — <code>POST /v1/compress/blocks</code> is available for advanced use. The main product is the full agent turn.</p>
+        </details>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="cta-df reveal-section">
+      <div class="wrap cta-df-inner">
+        <h2>A new standard for agent memory.</h2>
+        <p>Get a free API key. Connect Composio. Ship your next turn today.</p>
+        <a href="dashboard.html" class="btn btn-primary">Open dashboard</a>
+      </div>
     </section>
   </main>
 
-  <footer>
-    <span>© 2026 SuperCompress</span>
-    <span>
-      <a href="dashboard.html">Dashboard</a> ·
-      <a href="api.html">API</a> ·
-      <a href="https://github.com/arjunkshah/supercompress">GitHub</a>
-    </span>
+  <footer class="footer-df">
+    <div class="footer-df-grid">
+      <div>
+        <p class="footer-brand">super<em>compress</em></p>
+        <p class="footer-tagline">The agent memory API for AI apps.</p>
+      </div>
+      <div>
+        <p class="footer-heading">Navigation</p>
+        <a href="index.html">Overview</a>
+        <a href="api.html">Docs</a>
+        <a href="dashboard.html">Dashboard</a>
+      </div>
+      <div>
+        <p class="footer-heading">Resources</p>
+        <a href="https://github.com/arjunkshah/supercompress">GitHub</a>
+        <a href="app.html">Demo</a>
+      </div>
+    </div>
+    <p class="footer-copy">© 2026 SuperCompress</p>
   </footer>
 
   <script src="assets/js/config.js"></script>

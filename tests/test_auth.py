@@ -17,6 +17,14 @@ def enable_auth(monkeypatch):
     db.init_db()
 
 
+def test_auth_config_defaults_to_legacy():
+    r = client.get("/v1/auth/config")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["auth"] == "legacy"
+    assert body["firebase"]["enabled"] is False
+
+
 def test_signup_login_and_key_lifecycle():
     import uuid
 

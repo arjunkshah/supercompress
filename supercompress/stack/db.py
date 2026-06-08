@@ -79,6 +79,25 @@ def _row_to_dict(row: sqlite3.Row) -> Dict[str, Any]:
     return {k: row[k] for k in row.keys()}
 
 
+def upsert_firebase_user(firebase_uid: str, email: str, name: str = "") -> Dict[str, Any]:
+    """Create or update user keyed by Firebase UID."""
+    existing = get_user_by_id(firebase_uid)
+    if existing:
+        if email and existing.get("email") != email.lower().strip():
+            conn = get_conn()
+            conn.execute("UPDATE users SET email = ? WHERE id = ?", (email.lower().strip(), firebase_uid))
+            conn.commit()
+            existing["email"] = email.lower().strip()
+        if name and not existing.get("name"):
+            conn = get_conn()
+            conn.execute("UPDATE users SET name = ? WHERE id = ?", (name.strip(), firebase_uid))
+            conn.commit()
+            existing["name"] = name.strip()
+        return existing
+    display = name.strip() or (email.split("@")[0] if email else "User")
+    return create_user(firebase_uid, email or f"{firebase_uid}@firebase.local", "firebase", display)
+
+
 def create_user(user_id: str, email: str, password_hash: str, name: str) -> Dict[str, Any]:
     now = time.time()
     conn = get_conn()
