@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API — SuperCompress</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body class="app-page">
+  <div class="grain"></div>
+  <nav class="nav">
+    <div class="wrap nav-inner">
+      <a href="index.html" class="logo">super<em>compress</em></a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="app.html">Demo</a>
+        <a href="https://github.com/arjunkshah/supercompress/blob/main/docs/API.md" target="_blank" rel="noopener">Full docs</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap app-main">
+    <header class="app-header">
+      <h1>Developer API</h1>
+      <p>Drop into any agent loop — Python package or HTTP from any language.</p>
+    </header>
+
+    <section class="panel">
+      <h2>Option A — pip install (Python)</h2>
+      <pre class="install">pip install git+https://github.com/arjunkshah/supercompress.git
+
+from supercompress import compress_for_turn
+compressed, stats = compress_for_turn(blocks, query)
+# send `compressed` to your LLM</pre>
+    </section>
+
+    <section class="panel">
+      <h2>Option B — HTTP API (any language)</h2>
+      <p class="panel-desc">Run locally: <code>./bin/supercompress serve</code> then POST JSON.</p>
+      <pre class="install">POST http://127.0.0.1:8787/v1/compress/blocks
+Content-Type: application/json
+
+{
+  "context_blocks": ["## Tavily\\n...", "## GitHub\\n..."],
+  "query": "What should I ship today?",
+  "budget_ratio": 0.35
+}
+
+→ { "compressed_text": "...", "stats": { "kv_savings_pct": 65.2 } }</pre>
+      <p class="panel-desc">Live docs when server is running: <a href="http://127.0.0.1:8787/docs">127.0.0.1:8787/docs</a></p>
+    </section>
+
+    <section class="panel">
+      <h2>Where it goes in your loop</h2>
+      <div class="flow">
+        <span>Gather</span><span class="arrow">→</span>
+        <span class="core">POST /v1/compress/blocks</span><span class="arrow">→</span>
+        <span>LLM</span><span class="arrow">→</span>
+        <span>Tools</span>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

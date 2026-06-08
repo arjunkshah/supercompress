@@ -28,22 +28,30 @@ cd supercompress
 | **Nebius** | Inference on compressed input — faster, cheaper |
 | **OpenClaw** | Runtime hook for long agent sessions |
 
-## Install
+## How devs connect
 
-```bash
-pip install git+https://github.com/arjunkshah/supercompress.git
-supercompress-train --fast
-```
+| Method | Best for |
+|--------|----------|
+| **Python package** | Python agents (same process) |
+| **HTTP API** | Node, Go, Rust, any language |
+| **Python HTTP client** | Python app → remote API server |
 
+Docs: [docs/API.md](docs/API.md) · [API page](https://arjunkshah.github.io/supercompress/api.html)
+
+**Python (in-process):**
 ```python
 from supercompress import compress_for_turn
-
-compressed, stats = compress_for_turn(
-    ["## Tavily\n...", "## GitHub\n..."],
-    "what should I ship today?",
-)
-print(f"{stats.kv_savings_pct:.0f}% KV saved")
+compressed, stats = compress_for_turn(blocks, query)
 ```
+
+**HTTP (any language)** — run `./bin/supercompress serve`, then:
+```bash
+curl -X POST http://127.0.0.1:8787/v1/compress/blocks \
+  -H "Content-Type: application/json" \
+  -d '{"context_blocks":["## GitHub\nPR #42"],"query":"triage PRs"}'
+```
+
+Swagger UI: http://127.0.0.1:8787/docs
 
 ## CLI
 

@@ -54,10 +54,15 @@ async function runCompress() {
   out.textContent = "Compressing…";
 
   try {
-    const r = await fetch("/api/compress", {
+    const blocks = context.split("---").map((s) => s.trim()).filter(Boolean);
+    const body = blocks.length > 1
+      ? { context_blocks: blocks, query, budget_ratio: 0.35 }
+      : { context, query, budget_ratio: 0.35 };
+    const url = blocks.length > 1 ? "/v1/compress/blocks" : "/v1/compress";
+    const r = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ context, query }),
+      body: JSON.stringify(body),
     });
     if (r.ok) {
       const d = await r.json();
@@ -91,14 +96,16 @@ async function runCompress() {
 }
 
 function showResult(d, out) {
+  const s = d.stats || d;
+  const text = d.compressed_text || d.compressed_preview || "";
   out.innerHTML = `
 <div class="result-grid">
-  <div class="stat"><span class="stat-n">${d.original_tokens}</span><span class="stat-l">tokens in</span></div>
-  <div class="stat"><span class="stat-n">${d.kept_tokens}</span><span class="stat-l">tokens kept</span></div>
-  <div class="stat accent"><span class="stat-n">${d.kv_savings_pct}%</span><span class="stat-l">KV saved</span></div>
+  <div class="stat"><span class="stat-n">${s.original_tokens}</span><span class="stat-l">tokens in</span></div>
+  <div class="stat"><span class="stat-n">${s.kept_tokens}</span><span class="stat-l">tokens kept</span></div>
+  <div class="stat accent"><span class="stat-n">${s.kv_savings_pct}%</span><span class="stat-l">KV saved</span></div>
 </div>
-<p class="result-meta">Policy: <strong>${d.policy || "SuperCompress"}</strong> · FIFO would keep ~${d.fifo_tokens} tokens</p>
-<pre class="result-preview">${escapeHtml(d.compressed_preview || "")}</pre>`;
+<p class="result-meta">Policy: <strong>${s.policy_name || d.policy || "SuperCompress"}</strong> · FIFO would keep ~${s.fifo_kept_tokens ?? d.fifo_tokens} tokens</p>
+<pre class="result-preview">${escapeHtml(text)}</pre>`;
 }
 
 function escapeHtml(s) {

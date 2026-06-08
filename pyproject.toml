@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "supercompress"
-version = "0.3.0"
+version = "0.4.0"
 description = "SuperCompress — agent memory layer. Fix turn 4. ~65% KV savings."
 readme = "README.md"
 license = { text = "MIT" }
