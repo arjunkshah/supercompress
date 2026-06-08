@@ -4,6 +4,7 @@ __pycache__/
 *.egg-info/
 .pytest_cache/
 checkpoints/*.pt
+!checkpoints/default.pt
 !checkpoints/.gitkeep
 .DS_Store
 harbor collective/

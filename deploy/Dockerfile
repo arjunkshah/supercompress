@@ -9,11 +9,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY pyproject.toml README.md LICENSE ./
 COPY supercompress ./supercompress
 COPY scripts ./scripts
-COPY checkpoints/.gitkeep ./checkpoints/
+COPY checkpoints/default.pt ./checkpoints/default.pt
 
 RUN pip install --no-cache-dir -U pip && \
-    pip install --no-cache-dir -e . && \
-    supercompress-train --fast
+    pip install --no-cache-dir -e .
 
 ENV HARBOR_DEMO=0
 ENV PORT=8000
