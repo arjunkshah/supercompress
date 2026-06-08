@@ -863,6 +863,9 @@ footer a:hover { color: var(--text); }
   cursor: pointer;
 }
 .auth-tab.active { background: var(--text); color: #fff; border-color: var(--text); }
+.auth-form button[type="submit"] {
+  margin-top: 24px;
+}
 .field-label { display: block; font-size: 0.82rem; font-weight: 500; color: var(--text-secondary); margin: 16px 0 6px; }
 .field-input, .field-textarea {
   width: 100%;
