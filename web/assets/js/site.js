@@ -51,15 +51,16 @@ document.querySelectorAll(".api-tab").forEach((tab) => {
   });
 });
 
-const nav = document.querySelector(".nav");
-window.addEventListener(
-  "scroll",
-  () => {
-    if (!nav) return;
-    nav.style.boxShadow = window.scrollY > 8 ? "0 4px 24px rgba(0,0,0,0.06)" : "none";
-  },
-  { passive: true }
-);
+function initMobileNav() {
+  const btn = document.getElementById("df-menu-btn");
+  const menu = document.getElementById("df-mobile-nav");
+  if (!btn || !menu) return;
+  btn.addEventListener("click", () => {
+    const open = menu.classList.toggle("hidden");
+    btn.setAttribute("aria-expanded", open ? "false" : "true");
+  });
+}
 
+initMobileNav();
 initScrollReveal();
 initMockStackCycle();

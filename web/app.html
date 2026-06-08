@@ -5,22 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Demo — SuperCompress</title>
   <meta name="description" content="Try SuperCompress — see turn 4 context growth and compression live." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="assets/css/style.css" />
+  <meta name="theme-color" content="rgb(251,251,248)" />
+  <link rel="stylesheet" href="assets/css/style.css?v=4" />
 </head>
 <body class="app-page">
-  <nav class="nav">
-    <div class="nav-inner">
-      <a href="index.html" class="logo">super<em>compress</em></a>
-      <div class="nav-links">
-        <span id="mode-badge" class="mode-badge">…</span>
-        <a href="index.html">Home</a>
-        <a href="dashboard.html">Dashboard</a>
-        <a href="api.html">API</a>
+  <header class="df-header">
+    <div class="df-header-inner">
+      <a href="index.html" class="df-logo">
+        <svg class="df-logo-mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 24" fill="none" aria-hidden="true">
+          <path d="M11.85 0.19V5.74H17.66V0.19H11.85Z" fill="#5A8A30"/>
+          <path d="M11.85 11.42V17.01H6.15V11.42H11.85V5.74H0.51V22.66H17.66V11.42H11.85Z" fill="#C0D984"/>
+        </svg>
+        <span class="df-logo-word">super<em>compress</em></span>
+      </a>
+      <div class="df-header-end">
+        <nav class="df-nav-pill" aria-label="Main">
+          <a href="index.html">Home</a>
+          <a href="api.html">Docs</a>
+          <span id="mode-badge" class="mode-badge mode-badge--nav">…</span>
+        </nav>
+        <div class="df-cta-pill">
+          <a href="dashboard.html">Dashboard</a>
+        </div>
       </div>
+      <button type="button" class="df-menu-btn" id="df-menu-btn" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span>
+      </button>
     </div>
-  </nav>
+    <div class="df-mobile-nav hidden" id="df-mobile-nav">
+      <a href="index.html">Home</a>
+      <a href="api.html">Docs</a>
+      <a href="dashboard.html">Dashboard</a>
+    </div>
+  </header>
+  <div class="df-header-spacer" aria-hidden="true"></div>
 
   <main class="wrap app-main">
     <header class="app-header">
@@ -41,16 +59,19 @@
       <input type="text" id="query-input" class="field-input" placeholder="What should I do first today?" />
       <label class="field-label">Context (Tavily + GitHub + Gmail blocks)</label>
       <textarea id="context-input" class="field-textarea" rows="12" placeholder="## Tavily&#10;...&#10;---&#10;## GitHub&#10;..."></textarea>
-      <button type="button" id="compress-btn" class="btn btn-primary">Compress</button>
+      <button type="button" id="compress-btn" class="btn btn-pear">Compress</button>
       <div id="compress-result" class="compress-result"></div>
     </section>
   </main>
 
-  <footer class="wrap app-footer">
-    <a href="https://github.com/arjunkshah/supercompress">github.com/arjunkshah/supercompress</a>
+  <footer class="df-footer">
+    <div class="df-footer-inner">
+      <p class="df-footer-copy">© 2026 SuperCompress · <a href="https://github.com/arjunkshah/supercompress">GitHub</a></p>
+    </div>
   </footer>
 
   <script src="assets/js/config.js"></script>
+  <script src="assets/js/site.js?v=3"></script>
   <script src="assets/js/app.js"></script>
 </body>
 </html>

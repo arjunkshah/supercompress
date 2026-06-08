@@ -4,20 +4,41 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard — SuperCompress</title>
-  <link rel="stylesheet" href="assets/css/style.css" />
+  <meta name="theme-color" content="rgb(251,251,248)" />
+  <link rel="stylesheet" href="assets/css/style.css?v=4" />
 </head>
 <body class="dash-page">
-  <nav class="nav">
-    <div class="nav-inner">
-      <a href="index.html" class="logo">super<em>compress</em></a>
-      <div class="nav-links">
-        <a href="index.html">Home</a>
-        <a href="app.html">Demo</a>
-        <a href="api.html">Docs</a>
-        <button type="button" id="logout-btn" class="btn btn-ghost btn-sm hidden">Sign out</button>
+  <header class="df-header">
+    <div class="df-header-inner">
+      <a href="index.html" class="df-logo">
+        <svg class="df-logo-mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 24" fill="none" aria-hidden="true">
+          <path d="M11.85 0.19V5.74H17.66V0.19H11.85Z" fill="#5A8A30"/>
+          <path d="M11.85 11.42V17.01H6.15V11.42H11.85V5.74H0.51V22.66H17.66V11.42H11.85Z" fill="#C0D984"/>
+        </svg>
+        <span class="df-logo-word">super<em>compress</em></span>
+      </a>
+      <div class="df-header-end">
+        <nav class="df-nav-pill" aria-label="Main">
+          <a href="index.html">Home</a>
+          <a href="app.html">Demo</a>
+          <a href="api.html">Docs</a>
+        </nav>
+        <div class="df-cta-pill">
+          <button type="button" id="logout-btn" class="df-logout-btn hidden">Sign out</button>
+        </div>
       </div>
+      <button type="button" class="df-menu-btn" id="df-menu-btn" aria-label="Open menu" aria-expanded="false">
+        <span></span><span></span>
+      </button>
     </div>
-  </nav>
+    <div class="df-mobile-nav hidden" id="df-mobile-nav">
+      <a href="index.html">Home</a>
+      <a href="app.html">Demo</a>
+      <a href="api.html">Docs</a>
+      <button type="button" id="logout-btn-mobile" class="df-logout-mobile hidden">Sign out</button>
+    </div>
+  </header>
+  <div class="df-header-spacer" aria-hidden="true"></div>
 
   <!-- Auth -->
   <main class="wrap dash-auth" id="auth-screen">
@@ -43,7 +64,7 @@
         <input class="field-input" type="email" name="email" required autocomplete="email" />
         <label class="field-label">Password</label>
         <input class="field-input" type="password" name="password" required minlength="8" autocomplete="current-password" />
-        <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+        <button type="submit" class="btn btn-pear btn-block">Sign in</button>
       </form>
       <form id="signup-form" class="auth-form hidden">
         <label class="field-label">Name</label>
@@ -52,7 +73,7 @@
         <input class="field-input" type="email" name="email" required autocomplete="email" />
         <label class="field-label">Password (8+ chars)</label>
         <input class="field-input" type="password" name="password" required minlength="8" autocomplete="new-password" />
-        <button type="submit" class="btn btn-primary btn-block">Create account</button>
+        <button type="submit" class="btn btn-pear btn-block">Create account</button>
       </form>
       <p class="auth-error hidden" id="auth-error"></p>
     </div>
@@ -99,7 +120,7 @@
             <h1>API keys</h1>
             <p>Pass as <code>X-API-Key</code> header on every compress request.</p>
           </div>
-          <button type="button" class="btn btn-primary" id="create-key-btn">+ New key</button>
+          <button type="button" class="btn btn-pear" id="create-key-btn">+ New key</button>
         </header>
         <div class="panel" id="keys-list">
           <p class="dim">Loading…</p>
@@ -136,7 +157,7 @@
 - Call dentist Tuesday 3pm</textarea>
           <label class="field-label">User query</label>
           <textarea class="field-textarea" id="pg-query" rows="2">What should I focus on today?</textarea>
-          <button type="button" class="btn btn-primary" id="pg-run">Run agent turn</button>
+          <button type="button" class="btn btn-pear" id="pg-run">Run agent turn</button>
           <div class="compress-result" id="pg-result"></div>
         </div>
       </section>
@@ -170,19 +191,20 @@
       <form id="key-form">
         <label class="field-label">Key name</label>
         <input class="field-input" name="name" value="Production" required />
-        <button type="submit" class="btn btn-primary btn-block">Create</button>
+        <button type="submit" class="btn btn-pear btn-block">Create</button>
       </form>
       <div class="key-reveal hidden" id="key-reveal">
         <p class="warn-text">Copy now — you won't see this again.</p>
         <pre class="install key-full" id="key-full"></pre>
         <button type="button" class="btn btn-ghost btn-block" id="copy-key-btn">Copy key</button>
-        <button type="button" class="btn btn-primary btn-block" id="key-done-btn">Done</button>
+        <button type="button" class="btn btn-pear btn-block" id="key-done-btn">Done</button>
       </div>
     </div>
   </div>
 
   <script src="assets/js/config.js"></script>
   <script src="assets/js/firebase-auth.js"></script>
+  <script src="assets/js/site.js?v=3"></script>
   <script src="assets/js/dashboard.js"></script>
 </body>
 </html>

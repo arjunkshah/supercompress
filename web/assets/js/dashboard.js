@@ -43,12 +43,14 @@ function showAuth() {
   $("#auth-screen")?.classList.remove("hidden");
   $("#dash-screen")?.classList.add("hidden");
   $("#logout-btn")?.classList.add("hidden");
+  $("#logout-btn-mobile")?.classList.add("hidden");
 }
 
 function showDash(user) {
   $("#auth-screen")?.classList.add("hidden");
   $("#dash-screen")?.classList.remove("hidden");
   $("#logout-btn")?.classList.remove("hidden");
+  $("#logout-btn-mobile")?.classList.remove("hidden");
   $("#user-label").textContent = user.name || user.email;
   loadOverview();
   loadKeys();
@@ -335,6 +337,7 @@ function bindAuth() {
   });
 
   $("#logout-btn")?.addEventListener("click", () => logout());
+  $("#logout-btn-mobile")?.addEventListener("click", () => logout());
 
   $("#google-signin-btn")?.addEventListener("click", async () => {
     const el = $("#auth-error");
