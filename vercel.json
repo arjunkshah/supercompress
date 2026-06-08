@@ -1,0 +1,18 @@
+{
+  "buildCommand": "node scripts/inject-api-url.js",
+  "outputDirectory": "web",
+  "framework": null,
+  "rewrites": [
+    { "source": "/docs", "destination": "https://supercompress-api.onrender.com/docs" },
+    { "source": "/v1/:path*", "destination": "https://supercompress-api.onrender.com/v1/:path*" },
+    { "source": "/api/:path*", "destination": "https://supercompress-api.onrender.com/api/:path*" }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Origin", "value": "*" }
+      ]
+    }
+  ]
+}

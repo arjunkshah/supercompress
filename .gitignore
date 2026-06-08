@@ -10,3 +10,4 @@ harbor collective/
 .harbor/
 .tokenop/
 .env
+.vercel

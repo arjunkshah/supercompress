@@ -28,11 +28,16 @@ class SuperCompressClient:
     """
     Talk to a running SuperCompress API server.
 
-    Start server: ./bin/supercompress serve
-    Default base: http://127.0.0.1:8787
+    Official API: https://supercompress-api.onrender.com
+    Self-host: ./bin/supercompress serve → http://127.0.0.1:8787
     """
 
-    def __init__(self, base_url: str = "http://127.0.0.1:8787", *, timeout: float = 60.0):
+    def __init__(
+        self,
+        base_url: str = "https://supercompress-api.onrender.com",
+        *,
+        timeout: float = 90.0,
+    ):
         self.base_url = base_url.rstrip("/")
         self._client = httpx.Client(base_url=self.base_url, timeout=timeout)
 

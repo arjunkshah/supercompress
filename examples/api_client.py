@@ -9,7 +9,8 @@ BLOCKS = [
 ]
 
 if __name__ == "__main__":
-    with SuperCompressClient("http://127.0.0.1:8787") as client:
+    # Official cloud API — pass base_url for self-hosted serve
+    with SuperCompressClient() as client:
         print("Health:", client.health())
         result = client.compress_blocks(BLOCKS, "What PR should I review first?")
         print(f"\nKV savings: {result.stats.kv_savings_pct}%")

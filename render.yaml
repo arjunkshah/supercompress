@@ -1,0 +1,15 @@
+# Render.com — official public API
+# Connect repo at https://dashboard.render.com → New → Blueprint
+services:
+  - type: web
+    name: supercompress-api
+    runtime: docker
+    dockerfilePath: ./deploy/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /v1/health
+    envVars:
+      - key: HARBOR_DEMO
+        value: "1"
+      - key: PORT
+        value: "8000"

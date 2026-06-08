@@ -4,9 +4,10 @@
 
 The memory layer for AI agents — compress Tavily + Composio context **before every inference call**. ~65% KV savings. Agents keep going.
 
-🌐 **Site:** [arjunkshah.github.io/supercompress](https://arjunkshah.github.io/supercompress)  
+🌐 **Site:** [buildersshipbycursor.vercel.app](https://buildersshipbycursor.vercel.app)  
+🔌 **Official API:** [supercompress-api.onrender.com/docs](https://supercompress-api.onrender.com/docs)  
 📦 **Repo:** [github.com/arjunkshah/supercompress](https://github.com/arjunkshah/supercompress)  
-🐦 **Launch copy:** [LAUNCH.md](LAUNCH.md)
+🐦 **Launch copy:** [LAUNCH.md](LAUNCH.md) · **Deploy:** [DEPLOY.md](DEPLOY.md)
 
 ## 60 seconds
 
@@ -36,7 +37,7 @@ cd supercompress
 | **HTTP API** | Node, Go, Rust, any language |
 | **Python HTTP client** | Python app → remote API server |
 
-Docs: [docs/API.md](docs/API.md) · [API page](https://arjunkshah.github.io/supercompress/api.html)
+Docs: [docs/API.md](docs/API.md) · [API page](https://buildersshipbycursor.vercel.app/api.html)
 
 **Python (in-process):**
 ```python
@@ -44,9 +45,9 @@ from supercompress import compress_for_turn
 compressed, stats = compress_for_turn(blocks, query)
 ```
 
-**HTTP (any language)** — run `./bin/supercompress serve`, then:
+**HTTP (any language)** — official cloud API, no install:
 ```bash
-curl -X POST http://127.0.0.1:8787/v1/compress/blocks \
+curl -X POST https://supercompress-api.onrender.com/v1/compress/blocks \
   -H "Content-Type: application/json" \
   -d '{"context_blocks":["## GitHub\nPR #42"],"query":"triage PRs"}'
 ```

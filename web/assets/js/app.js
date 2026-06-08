@@ -1,8 +1,20 @@
-/** SuperCompress demo app — works on GitHub Pages (static JSON) or live API */
+/** SuperCompress demo — static JSON fallback + official cloud API */
 
 const $ = (sel) => document.querySelector(sel);
 
+function apiPath(path) {
+  const base = (window.SUPERCOMPRESS_API || "").replace(/\/$/, "");
+  return base ? `${base}${path}` : path;
+}
+
 async function loadDemo() {
+  try {
+    const r = await fetch(apiPath("/v1/turns/demo"));
+    if (r.ok) {
+      const d = await r.json();
+      return { turns: d.turns, query: d.query, sample: null, live: true };
+    }
+  } catch (_) {}
   try {
     const r = await fetch("data/demo.json");
     if (r.ok) return r.json();
@@ -58,7 +70,7 @@ async function runCompress() {
     const body = blocks.length > 1
       ? { context_blocks: blocks, query, budget_ratio: 0.35 }
       : { context, query, budget_ratio: 0.35 };
-    const url = blocks.length > 1 ? "/v1/compress/blocks" : "/v1/compress";
+    const url = blocks.length > 1 ? apiPath("/v1/compress/blocks") : apiPath("/v1/compress");
     const r = await fetch(url, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -87,7 +99,7 @@ async function runCompress() {
     );
     out.insertAdjacentHTML(
       "beforeend",
-      '\n\n<span class="dim">(Static demo — run <code>./bin/supercompress serve</code> for live compression on your text)</span>'
+      '\n\n<span class="dim">(Static fallback — API may be cold-starting on free tier; retry in ~30s)</span>'
     );
   } else {
     out.textContent = "Demo data unavailable.";
@@ -133,9 +145,9 @@ Composio shipped OpenClaw plugin. Nebius added Kimi K2.5.
   }
 
   $("#compress-btn")?.addEventListener("click", runCompress);
-  const live = await fetch("/api/health").then((r) => r.ok).catch(() => false);
+  const live = await fetch(apiPath("/v1/health")).then((r) => r.ok).catch(() => false);
   const badge = $("#mode-badge");
-  if (badge) badge.textContent = live ? "Live API" : "Static demo";
+  if (badge) badge.textContent = live ? "Live API" : data?.live ? "API" : "Static demo";
 }
 
 init();

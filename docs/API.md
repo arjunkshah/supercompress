@@ -1,5 +1,25 @@
 # SuperCompress API
 
+**Official public API (no install):**
+
+```
+https://supercompress-api.onrender.com
+```
+
+- Docs: https://supercompress-api.onrender.com/docs  
+- Website: https://buildersshipbycursor.vercel.app  
+- Same-origin proxy on Vercel: `https://buildersshipbycursor.vercel.app/v1/...`
+
+```bash
+curl -s https://supercompress-api.onrender.com/v1/compress/blocks \
+  -H "Content-Type: application/json" \
+  -d '{"context_blocks":["## Tavily\nAI agent market..."], "query": "What matters?", "budget_ratio": 0.35}'
+```
+
+Free tier cold-starts in ~30s after idle. For production volume, self-host with `./bin/supercompress serve` or deploy your own Docker image (`deploy/Dockerfile`).
+
+---
+
 Three ways for devs to integrate — pick what fits your stack.
 
 ## 1. Python package (in-process, fastest)

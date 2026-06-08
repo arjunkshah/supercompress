@@ -37,8 +37,8 @@ compressed, stats = compress_for_turn(blocks, query)
 
     <section class="panel">
       <h2>Option B — HTTP API (any language)</h2>
-      <p class="panel-desc">Run locally: <code>./bin/supercompress serve</code> then POST JSON.</p>
-      <pre class="install">POST http://127.0.0.1:8787/v1/compress/blocks
+      <p class="panel-desc">Official public API — no install required.</p>
+      <pre class="install">POST https://supercompress-api.onrender.com/v1/compress/blocks
 Content-Type: application/json
 
 {
@@ -48,7 +48,7 @@ Content-Type: application/json
 }
 
 → { "compressed_text": "...", "stats": { "kv_savings_pct": 65.2 } }</pre>
-      <p class="panel-desc">Live docs when server is running: <a href="http://127.0.0.1:8787/docs">127.0.0.1:8787/docs</a></p>
+      <p class="panel-desc">Live docs: <a href="https://supercompress-api.onrender.com/docs" target="_blank" rel="noopener">supercompress-api.onrender.com/docs</a></p>
     </section>
 
     <section class="panel">

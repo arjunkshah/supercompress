@@ -1,0 +1,13 @@
+.git
+.venv
+venv
+__pycache__
+*.pyc
+.env
+.vercel
+harbor collective
+tests
+web
+.github
+*.md
+!README.md
