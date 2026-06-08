@@ -1577,6 +1577,16 @@ footer:not(.df-footer):not(.footer-df) a:hover { color: #fff; }
   font-size: 13px;
   color: var(--text-muted);
 }
+.dash-offline-banner {
+  margin-bottom: 24px;
+  padding: 12px 16px;
+  border-radius: 6px;
+  border: 1px solid rgba(180, 83, 9, 0.25);
+  background: #fffbeb;
+  color: #92400e;
+  font-size: 14px;
+  line-height: 1.45;
+}
 
 .stat-row {
   display: grid;

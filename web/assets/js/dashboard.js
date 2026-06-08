@@ -98,11 +98,42 @@ function showAuth() {
   $("#header-user-mobile")?.classList.add("hidden");
 }
 
+function isApiOfflineError(err) {
+  const msg = err?.message || "";
+  return (
+    msg.includes("offline") ||
+    msg.includes("invalid JSON") ||
+    msg.includes("Failed to fetch") ||
+    msg.includes("NetworkError") ||
+    msg.includes("unexpected response")
+  );
+}
+
 function showAuthError(message) {
   const el = $("#auth-error");
   if (!el) return;
   el.textContent = message;
   el.classList.remove("hidden");
+}
+
+function hideAuthError() {
+  $("#auth-error")?.classList.add("hidden");
+}
+
+function setApiOfflineBanner(show) {
+  const existing = $("#api-offline-banner");
+  if (!show) {
+    existing?.remove();
+    return;
+  }
+  if (existing) return;
+  const banner = document.createElement("div");
+  banner.id = "api-offline-banner";
+  banner.className = "dash-offline-banner";
+  banner.setAttribute("role", "status");
+  banner.textContent =
+    "API backend is offline — keys, integrations, and playground need the server running.";
+  $(".dash-main")?.prepend(banner);
 }
 
 function profileFromFirebase(fbUser) {
@@ -490,17 +521,27 @@ async function syncFirebaseSession(user) {
   if (sessionSyncing) return sessionSyncing;
 
   sessionSyncing = (async () => {
-    const el = $("#auth-error");
     try {
       const t = await user.getIdToken();
       localStorage.setItem(TOKEN_KEY, t);
-      const data = await api("GET", "/v1/dashboard/me");
-      const profile = resolveDashboardUser(data, user);
-      if (!profile) throw new Error("API did not return a user profile.");
-      el?.classList.add("hidden");
+      let profile = profileFromFirebase(user);
+      let apiOffline = false;
+      try {
+        const data = await api("GET", "/v1/dashboard/me");
+        profile = resolveDashboardUser(data, user) || profile;
+      } catch (err) {
+        if (!isApiOfflineError(err)) throw err;
+        apiOffline = true;
+      }
+      if (!profile?.id && !profile?.email) {
+        throw new Error("Could not load your profile. Try signing in again.");
+      }
+      hideAuthError();
+      setApiOfflineBanner(apiOffline);
       return showDash(profile);
     } catch (err) {
       localStorage.removeItem(TOKEN_KEY);
+      setApiOfflineBanner(false);
       showAuth();
       showAuthError(friendlyAuthError(err));
       return false;
@@ -582,21 +623,28 @@ async function initFirebaseAuth() {
   showFirebaseAuthUi();
   await ScFirebase.init(cfg.firebase);
 
-  try {
-    // Consume Google redirect result; onAuthStateChanged performs the session sync.
-    await ScFirebase.completeRedirectSignIn();
-  } catch (err) {
-    showAuthError(friendlyAuthError(err));
-  }
-
+  let authReady = false;
   ScFirebase.onAuthStateChanged(async (user) => {
+    if (!authReady && !user) return;
+    authReady = true;
     if (!user) {
       localStorage.removeItem(TOKEN_KEY);
+      setApiOfflineBanner(false);
       showAuth();
       return;
     }
     await syncFirebaseSession(user);
   });
+
+  try {
+    const redirectUser = await ScFirebase.completeRedirectSignIn();
+    if (redirectUser) {
+      authReady = true;
+      await syncFirebaseSession(redirectUser);
+    }
+  } catch (err) {
+    showAuthError(friendlyAuthError(err));
+  }
   return true;
 }
 
@@ -613,9 +661,10 @@ async function init() {
   if (token()) {
     try {
       const data = await api("GET", "/v1/dashboard/me");
+      setApiOfflineBanner(false);
       if (showDash(resolveDashboardUser(data))) return;
-    } catch (_) {
-      await logout();
+    } catch (err) {
+      if (!isApiOfflineError(err)) await logout();
     }
   }
   showAuth();

@@ -3,9 +3,9 @@
   "outputDirectory": "web",
   "framework": null,
   "rewrites": [
-    { "source": "/docs", "destination": "https://260e-2601-646-8201-bc20-71c3-b037-17ea-6f70.ngrok-free.app/docs" },
-    { "source": "/v1/:path*", "destination": "https://260e-2601-646-8201-bc20-71c3-b037-17ea-6f70.ngrok-free.app/v1/:path*" },
-    { "source": "/api/:path*", "destination": "https://260e-2601-646-8201-bc20-71c3-b037-17ea-6f70.ngrok-free.app/api/:path*" }
+    { "source": "/docs", "destination": "https://a9d9-2601-646-8201-bc20-71c3-b037-17ea-6f70.ngrok-free.app/docs" },
+    { "source": "/v1/:path*", "destination": "https://a9d9-2601-646-8201-bc20-71c3-b037-17ea-6f70.ngrok-free.app/v1/:path*" },
+    { "source": "/api/:path*", "destination": "https://a9d9-2601-646-8201-bc20-71c3-b037-17ea-6f70.ngrok-free.app/api/:path*" }
   ],
   "headers": [
     {
