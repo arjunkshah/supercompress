@@ -27,12 +27,25 @@ async function authHeaders() {
 }
 
 async function fetchJson(method, path, body, headers = {}) {
-  const opts = { method, headers: { "Content-Type": "application/json", ...headers } };
+  const opts = {
+    method,
+    headers: {
+      "Content-Type": "application/json",
+      "ngrok-skip-browser-warning": "1",
+      ...headers,
+    },
+  };
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(apiPath(path), opts);
   const text = await r.text();
   let data = null;
   if (text) {
+    const trimmed = text.trim();
+    if (trimmed.startsWith("<")) {
+      throw new Error(
+        "API backend is offline (got HTML instead of JSON). Keep the local API + ngrok tunnel running, or deploy to Render."
+      );
+    }
     try {
       data = JSON.parse(text);
     } catch {
