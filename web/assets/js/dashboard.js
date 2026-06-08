@@ -488,6 +488,26 @@ async function logout() {
   showAuth();
 }
 
+let integrationPollTimer = null;
+
+function stopIntegrationPoll() {
+  if (integrationPollTimer) {
+    clearInterval(integrationPollTimer);
+    integrationPollTimer = null;
+  }
+}
+
+function startIntegrationPoll() {
+  stopIntegrationPoll();
+  let ticks = 0;
+  loadIntegrations();
+  integrationPollTimer = setInterval(() => {
+    loadIntegrations();
+    ticks += 1;
+    if (ticks >= 40) stopIntegrationPoll();
+  }, 3000);
+}
+
 async function loadIntegrations() {
   const el = $("#integrations-list");
   try {
@@ -513,8 +533,16 @@ async function loadIntegrations() {
     $$(".connect-btn", el).forEach((btn) => {
       btn.addEventListener("click", async () => {
         const res = await api("POST", `/v1/dashboard/integrations/connect/${btn.dataset.tk}`);
-        if (res.redirect_url) window.open(res.redirect_url, "_blank");
-        else loadIntegrations();
+        if (res.already_connected) {
+          loadIntegrations();
+          return;
+        }
+        if (res.redirect_url) {
+          window.open(res.redirect_url, "_blank", "noopener,noreferrer");
+          startIntegrationPoll();
+        } else {
+          loadIntegrations();
+        }
       });
     });
   } catch (_) {
@@ -700,6 +728,10 @@ function bindDash() {
 
   $("#key-modal")?.addEventListener("click", (e) => {
     if (e.target.id === "key-modal") hideKeyModal();
+  });
+
+  window.addEventListener("focus", () => {
+    if (!$("#view-integrations")?.classList.contains("hidden")) loadIntegrations();
   });
 }
 

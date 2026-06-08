@@ -147,12 +147,15 @@ def usage(user: Dict[str, Any] = Depends(auth.require_user)) -> Dict[str, Any]:
 def integrations(user: Dict[str, Any] = Depends(auth.require_user)) -> Dict[str, Any]:
     """Composio connection status for this developer account."""
     composio = get_composio(settings_for_user(user["id"]))
-    summary = composio.connection_summary()
+    composio.invalidate_cache()
+    linked = composio.dashboard_linked(CONNECTABLE_TOOLKITS)
+    missing = [tk for tk in CONNECTABLE_TOOLKITS if tk not in linked]
     return {
         "toolkits": CONNECTABLE_TOOLKITS,
-        "linked": summary.get("linked", []),
-        "missing": summary.get("missing_oauth", []),
-        "all_linked": summary.get("all_linked", False),
+        "linked": linked,
+        "missing": missing,
+        "missing_oauth": missing,
+        "all_linked": not missing,
         "note": "Connect apps here — every API call gathers from your linked Composio accounts.",
     }
 
@@ -166,6 +169,7 @@ def connect_integration(toolkit: str, user: Dict[str, Any] = Depends(auth.requir
     result = composio.auth_connect(slug)
     if result.error and not result.already_connected:
         raise HTTPException(status_code=502, detail=result.error)
+    composio.invalidate_cache()
     return {
         "toolkit": slug,
         "already_connected": result.already_connected,

@@ -3,12 +3,25 @@
 from __future__ import annotations
 
 import json
+import logging
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
 from supercompress.stack._paths import FIXTURES
 from supercompress.stack.config import Settings, get_settings
 from supercompress.stack.integrations import ALL_TOOLKIT_SLUGS
+
+logger = logging.getLogger(__name__)
+
+
+def normalize_composio_slug(slug: str) -> str:
+    """Map Composio toolkit slugs to our dashboard slugs."""
+    s = str(slug or "").lower().strip().replace("-", "").replace("_", "")
+    aliases = {
+        "googlecalendar": "googlecalendar",
+        "googlecal": "googlecalendar",
+    }
+    return aliases.get(s, s)
 
 
 @dataclass
@@ -141,14 +154,23 @@ class ComposioHub:
                 limit=50,
             )
             for item in getattr(listed, "items", None) or []:
+                raw_slug = None
                 toolkit = getattr(item, "toolkit", None)
-                slug = getattr(toolkit, "slug", None) if toolkit else None
-                if slug:
-                    slugs.add(str(slug).lower())
-        except Exception:
-            pass
+                if toolkit is not None:
+                    raw_slug = getattr(toolkit, "slug", None) or getattr(toolkit, "name", None)
+                if not raw_slug:
+                    raw_slug = getattr(item, "toolkit_slug", None) or getattr(item, "integration_id", None)
+                if raw_slug:
+                    slugs.add(normalize_composio_slug(str(raw_slug)))
+        except Exception as exc:
+            logger.warning("Composio connected_accounts.list failed: %s", exc)
         self._connected_cache = slugs
         return slugs
+
+    def dashboard_linked(self, toolkits: List[str]) -> List[str]:
+        """Toolkits from dashboard list that are OAuth-connected for this user."""
+        connected = self.connected_toolkits()
+        return [tk for tk in toolkits if tk in connected]
 
     def integration_status(self) -> Dict[str, bool]:
         connected = self.connected_toolkits()
