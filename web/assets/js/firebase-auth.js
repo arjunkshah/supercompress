@@ -38,6 +38,12 @@
     return global.firebase.auth();
   }
 
+  function googleProvider() {
+    const provider = new global.firebase.auth.GoogleAuthProvider();
+    provider.setCustomParameters({ prompt: "select_account" });
+    return provider;
+  }
+
   async function signInWithEmail(email, password) {
     return auth().signInWithEmailAndPassword(email, password);
   }
@@ -50,9 +56,22 @@
     return cred;
   }
 
+  /** Redirect flow — avoids Cross-Origin-Opener-Policy popup issues on Vercel. */
   async function signInWithGoogle() {
-    const provider = new global.firebase.auth.GoogleAuthProvider();
-    return auth().signInWithPopup(provider);
+    await auth().signInWithRedirect(googleProvider());
+  }
+
+  /** Call once on page load after init to finish a Google redirect sign-in. */
+  async function completeRedirectSignIn() {
+    if (!ready) return null;
+    try {
+      const result = await auth().getRedirectResult();
+      return result?.user || null;
+    } catch (err) {
+      const code = err?.code || "";
+      if (code === "auth/no-auth-event") return null;
+      throw err;
+    }
   }
 
   async function signOut() {
@@ -78,6 +97,7 @@
     signInWithEmail,
     createUserWithEmail,
     signInWithGoogle,
+    completeRedirectSignIn,
     signOut,
     getIdToken,
     onAuthStateChanged,

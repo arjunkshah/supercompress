@@ -11,7 +11,8 @@
     {
       "source": "/(.*)",
       "headers": [
-        { "key": "Access-Control-Allow-Origin", "value": "*" }
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Cross-Origin-Opener-Policy", "value": "same-origin-allow-popups" }
       ]
     }
   ]

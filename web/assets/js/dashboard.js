@@ -341,13 +341,57 @@ function bindAuth() {
 
   $("#google-signin-btn")?.addEventListener("click", async () => {
     const el = $("#auth-error");
+    const btn = $("#google-signin-btn");
     try {
+      el.classList.add("hidden");
+      if (btn) {
+        btn.disabled = true;
+        btn.setAttribute("aria-busy", "true");
+      }
       await ScFirebase.signInWithGoogle();
     } catch (err) {
-      el.textContent = err.message || "Google sign-in failed";
+      if (btn) {
+        btn.disabled = false;
+        btn.removeAttribute("aria-busy");
+      }
+      el.textContent = friendlyAuthError(err);
       el.classList.remove("hidden");
     }
   });
+}
+
+function friendlyAuthError(err) {
+  const code = err?.code || "";
+  const msg = err?.message || "";
+  if (code === "auth/popup-blocked") return "Popup was blocked. Try again or use email sign-in.";
+  if (code === "auth/unauthorized-domain") {
+    return "This domain is not authorized in Firebase. Add supercompress.vercel.app to authorized domains.";
+  }
+  if (msg.includes("401") || msg.includes("Invalid") || msg.includes("expired")) {
+    return "Signed in, but the API rejected your session. Check that the API is online.";
+  }
+  if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
+    return "Could not reach the API. Try again in a moment.";
+  }
+  return msg || "Sign-in failed";
+}
+
+async function syncFirebaseSession(user) {
+  const el = $("#auth-error");
+  const t = await user.getIdToken();
+  localStorage.setItem(TOKEN_KEY, t);
+  try {
+    const data = await api("GET", "/v1/dashboard/me");
+    el.classList.add("hidden");
+    showDash(data.user);
+    return true;
+  } catch (err) {
+    localStorage.removeItem(TOKEN_KEY);
+    showAuth();
+    el.textContent = friendlyAuthError(err);
+    el.classList.remove("hidden");
+    return false;
+  }
 }
 
 function bindDash() {
@@ -420,21 +464,22 @@ async function initFirebaseAuth() {
   showFirebaseAuthUi();
   await ScFirebase.init(cfg.firebase);
 
+  try {
+    const redirected = await ScFirebase.completeRedirectSignIn();
+    if (redirected) await syncFirebaseSession(redirected);
+  } catch (err) {
+    const el = $("#auth-error");
+    el.textContent = friendlyAuthError(err);
+    el.classList.remove("hidden");
+  }
+
   ScFirebase.onAuthStateChanged(async (user) => {
     if (!user) {
       localStorage.removeItem(TOKEN_KEY);
       showAuth();
       return;
     }
-    const t = await user.getIdToken();
-    localStorage.setItem(TOKEN_KEY, t);
-    try {
-      const data = await api("GET", "/v1/dashboard/me");
-      showDash(data.user);
-    } catch (_) {
-      localStorage.removeItem(TOKEN_KEY);
-      showAuth();
-    }
+    await syncFirebaseSession(user);
   });
   return true;
 }
