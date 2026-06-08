@@ -13,3 +13,5 @@ services:
         value: "1"
       - key: PORT
         value: "8000"
+      - key: SUPERCOMPRESS_JWT_SECRET
+        generateValue: true

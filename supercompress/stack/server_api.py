@@ -6,6 +6,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from supercompress.stack.api import router as api_router
+from supercompress.stack.dashboard import router as dashboard_router
+from supercompress.stack.db import init_db
+
+init_db()
 
 app = FastAPI(
     title="SuperCompress API",
@@ -25,6 +29,8 @@ app.add_middleware(
 
 app.include_router(api_router, prefix="/v1")
 app.include_router(api_router, prefix="/api")
+app.include_router(dashboard_router, prefix="/v1")
+app.include_router(dashboard_router, prefix="/api")
 
 
 @app.get("/")

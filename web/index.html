@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SuperCompress — AI agents that remember</title>
-  <meta name="description" content="SuperCompress trims bloated AI context before each reply — so agents stay fast and accurate past turn 4." />
-  <meta property="og:url" content="https://arjunkshah.github.io/supercompress/" />
+  <title>SuperCompress — Memory layer for AI agents</title>
+  <meta name="description" content="Compress agent context before every LLM call. ~65% KV savings. API keys, dashboard, one HTTP POST." />
+  <meta property="og:url" content="https://buildersshipbycursor.vercel.app/" />
   <meta property="og:title" content="SuperCompress — AI agents that remember" />
-  <meta property="og:description" content="Trim bloated context before each AI reply. ~65% smaller. Agents don't forget at turn 4." />
+  <meta property="og:description" content="Drop between gather and infer. Official API for devs building multi-turn agents." />
   <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -24,58 +24,204 @@
     <div class="wrap nav-inner">
       <a href="index.html" class="logo">super<em>compress</em></a>
       <div class="nav-links">
+        <a href="#how">How it works</a>
+        <a href="#api">API</a>
         <a href="app.html">Demo</a>
-        <a href="api.html">API</a>
-        <a href="https://github.com/arjunkshah/supercompress" class="btn btn-ghost" target="_blank" rel="noopener">GitHub</a>
+        <a href="dashboard.html" class="btn btn-primary btn-sm">Get API key</a>
       </div>
     </div>
   </nav>
 
   <main class="wrap">
-    <section class="hero hero-simple">
-      <div class="hero-center">
-        <p class="eyebrow">Open source</p>
-        <h1>AI assistants forget.<br /><span>We fix the memory.</span></h1>
-        <p class="lead lead-center">
-          When an AI agent checks your email, GitHub, and the web — the pile of text gets huge.
-          SuperCompress cuts the junk <em>before</em> the AI reads it. Same answers, ~65% less bloat.
+    <section class="hero">
+      <div>
+        <p class="eyebrow">For devs building AI agents</p>
+        <h1>Your agent forgets at turn 4.<br /><span>We fix the memory.</span></h1>
+        <p class="lead">
+          Multi-turn agents pile up Tavily research, GitHub PRs, and tool output every turn.
+          SuperCompress trims the junk <em>before</em> your LLM reads it — same answers, ~65% less KV cache.
         </p>
-        <div class="hero-actions hero-actions-center">
-          <a href="app.html" class="btn btn-primary">Try the demo</a>
-          <a href="api.html" class="btn btn-ghost">Use the API</a>
-          <a href="https://github.com/arjunkshah/supercompress" class="btn btn-ghost" target="_blank" rel="noopener">GitHub</a>
+        <div class="hero-actions">
+          <a href="dashboard.html" class="btn btn-primary">Create free API key</a>
+          <a href="app.html" class="btn btn-ghost">Live demo</a>
+        </div>
+        <div class="proof">
+          <span>~65% KV savings</span>
+          <span>One HTTP POST</span>
+          <span>Any language</span>
+        </div>
+      </div>
+      <div class="term">
+        <div class="term-bar">
+          <span class="dot dot-r"></span><span class="dot dot-y"></span><span class="dot dot-g"></span>
+          supercompress — turn 4
+        </div>
+        <div class="term-body" id="terminal"></div>
+      </div>
+    </section>
+
+    <section id="problem">
+      <p class="section-label">The problem</p>
+      <h2>Context explodes. Models forget.</h2>
+      <p class="section-lead">
+        Every agent turn adds more tool output. By turn 4, latency spikes, costs balloon, and the model starts dropping earlier context. FIFO keeps everything — until it can't.
+      </p>
+      <div class="grid-3">
+        <div class="card">
+          <h3>Turn 1</h3>
+          <p>2K tokens — fine.</p>
+          <p class="why">Agent gathers web + GitHub.</p>
+        </div>
+        <div class="card">
+          <h3>Turn 3</h3>
+          <p>8K tokens — slowing down.</p>
+          <p class="why">Every tool call stacks on the last.</p>
+        </div>
+        <div class="card card-accent">
+          <h3>Turn 4+</h3>
+          <p>OOM, hallucination, or $$$.</p>
+          <p class="why">SuperCompress keeps agents stable.</p>
         </div>
       </div>
     </section>
 
-    <section class="steps">
-      <div class="step">
-        <span class="step-n">1</span>
-        <h3>Agent gathers info</h3>
-        <p>Web search, PRs, emails — stacked every turn.</p>
+    <section id="how">
+      <p class="section-label">How it works</p>
+      <h2>Drop us between gather and infer</h2>
+      <p class="section-lead">You run Tavily, Composio, or your own tools. We compress. You send the result to Nebius, OpenAI, or whatever LLM you use.</p>
+      <div class="flow flow-lg">
+        <span>Your tools</span><span class="arrow">→</span>
+        <span class="core">POST /v1/compress/blocks</span><span class="arrow">→</span>
+        <span>Your LLM</span><span class="arrow">→</span>
+        <span>Repeat</span>
       </div>
-      <div class="step step-core">
-        <span class="step-n">2</span>
-        <h3>SuperCompress trims</h3>
-        <p>Keeps what matters. Drops the rest.</p>
+      <div class="steps steps-inline">
+        <div class="step">
+          <span class="step-n">01</span>
+          <h3>Gather context</h3>
+          <p>Tavily, Composio, custom MCP — your stack.</p>
+        </div>
+        <div class="step step-core">
+          <span class="step-n">02</span>
+          <h3>Compress</h3>
+          <p>Learned eviction picks tokens that matter for the query.</p>
+        </div>
+        <div class="step">
+          <span class="step-n">03</span>
+          <h3>Infer + act</h3>
+          <p>Smaller prompt → faster, cheaper, still accurate.</p>
+        </div>
       </div>
-      <div class="step">
-        <span class="step-n">3</span>
-        <h3>AI responds</h3>
-        <p>Faster, cheaper, still accurate.</p>
+    </section>
+
+    <section id="api">
+      <p class="section-label">Developer API</p>
+      <h2>One call. Any stack.</h2>
+      <p class="section-lead">Sign up, create a key, POST your context blocks. Returns compressed text + savings stats.</p>
+      <div class="code-grid">
+        <div class="code-panel">
+          <div class="code-tabs"><span class="active">curl</span><span>python</span><span>javascript</span></div>
+          <pre class="install" id="code-curl">curl -X POST https://supercompress-api.onrender.com/v1/compress/blocks \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: sc_live_YOUR_KEY" \
+  -d '{
+    "context_blocks": [
+      "## Tavily\nAI agent market trends...",
+      "## GitHub\nPR #42 needs review"
+    ],
+    "query": "What should I ship today?",
+    "budget_ratio": 0.35
+  }'</pre>
+          <pre class="install hidden" id="code-python">from supercompress.http_client import SuperCompressClient
+
+client = SuperCompressClient(
+    base_url="https://supercompress-api.onrender.com",
+    api_key="sc_live_YOUR_KEY",
+)
+result = client.compress_blocks(blocks, query)
+llm.chat(result.compressed_text)</pre>
+          <pre class="install hidden" id="code-js">const res = await fetch("/v1/compress/blocks", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "X-API-Key": "sc_live_YOUR_KEY",
+  },
+  body: JSON.stringify({ context_blocks, query, budget_ratio: 0.35 }),
+});
+const { compressed_text, stats } = await res.json();</pre>
+        </div>
+        <div class="card card-tall">
+          <h3>Response</h3>
+          <pre class="install response-sample">{
+  "compressed_text": "## GitHub\nPR #42 auth fix...",
+  "stats": {
+    "original_tokens": 1842,
+    "kept_tokens": 644,
+    "kv_savings_pct": 65.0,
+    "policy_name": "SuperCompress"
+  }
+}</pre>
+          <a href="dashboard.html" class="btn btn-primary btn-block">Get your API key →</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="pricing">
+      <p class="section-label">Pricing</p>
+      <h2>Free to start</h2>
+      <div class="grid-3">
+        <div class="card card-accent">
+          <h3>Developer</h3>
+          <p class="price">$0</p>
+          <p>API keys, dashboard, usage stats. Compress on every turn.</p>
+          <a href="dashboard.html" class="btn btn-primary btn-block">Sign up free</a>
+        </div>
+        <div class="card">
+          <h3>Self-host</h3>
+          <p class="price">Open source</p>
+          <p>Run on your infra. Full control, your keys, your data.</p>
+          <a href="https://github.com/arjunkshah/supercompress" class="btn btn-ghost btn-block" target="_blank" rel="noopener">GitHub</a>
+        </div>
+        <div class="card">
+          <h3>Enterprise</h3>
+          <p class="price">Contact</p>
+          <p>Dedicated capacity, SLA, custom budgets, on-prem deploy.</p>
+          <a href="mailto:hello@supercompress.dev" class="btn btn-ghost btn-block">Get in touch</a>
+        </div>
       </div>
     </section>
 
     <section class="cta-block">
-      <h2>See turn 4 in action</h2>
-      <p>Interactive chart + compression playground. No install.</p>
-      <a href="app.html" class="btn btn-primary">Open demo →</a>
+      <h2>Build agents that remember</h2>
+      <p>Create an API key in 30 seconds. No credit card.</p>
+      <div class="hero-actions hero-actions-center">
+        <a href="dashboard.html" class="btn btn-primary">Open dashboard</a>
+        <a href="api.html" class="btn btn-ghost">Read API docs</a>
+      </div>
     </section>
   </main>
 
   <footer class="wrap">
     <span>© 2026 SuperCompress</span>
-    <span><a href="https://github.com/arjunkshah/supercompress">GitHub</a> · <a href="app.html">Demo</a></span>
+    <span>
+      <a href="dashboard.html">Dashboard</a> ·
+      <a href="app.html">Demo</a> ·
+      <a href="https://github.com/arjunkshah/supercompress" target="_blank" rel="noopener">GitHub</a>
+    </span>
   </footer>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/main.js"></script>
+  <script>
+    document.querySelectorAll(".code-tabs span").forEach((tab, i) => {
+      tab.addEventListener("click", () => {
+        document.querySelectorAll(".code-tabs span").forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+        ["code-curl", "code-python", "code-js"].forEach((id, j) => {
+          document.getElementById(id).classList.toggle("hidden", i !== j);
+        });
+      });
+    });
+  </script>
 </body>
 </html>

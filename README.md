@@ -5,6 +5,7 @@
 The memory layer for AI agents — compress Tavily + Composio context **before every inference call**. ~65% KV savings. Agents keep going.
 
 🌐 **Site:** [buildersshipbycursor.vercel.app](https://buildersshipbycursor.vercel.app)  
+🔑 **Dashboard:** [Get API key](https://buildersshipbycursor.vercel.app/dashboard.html)  
 🔌 **Official API:** [supercompress-api.onrender.com/docs](https://supercompress-api.onrender.com/docs)  
 📦 **Repo:** [github.com/arjunkshah/supercompress](https://github.com/arjunkshah/supercompress)  
 🐦 **Launch copy:** [LAUNCH.md](LAUNCH.md) · **Deploy:** [DEPLOY.md](DEPLOY.md)

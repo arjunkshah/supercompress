@@ -15,6 +15,10 @@ from supercompress.stack.agent.loop import StackAgent
 from supercompress.stack.agent.prompts import OPENCLAW_BRIDGE_SYSTEM
 from supercompress.stack.api import router as api_router
 from supercompress.stack.config import get_settings
+from supercompress.stack.dashboard import router as dashboard_router
+from supercompress.stack.db import init_db
+
+init_db()
 
 app = FastAPI(
     title="SuperCompress API",
@@ -34,6 +38,8 @@ app.add_middleware(
 
 app.include_router(api_router, prefix="/v1")
 app.include_router(api_router, prefix="/api")  # legacy alias
+app.include_router(dashboard_router, prefix="/v1")
+app.include_router(dashboard_router, prefix="/api")
 
 WEB_DIR = ROOT / "web"
 

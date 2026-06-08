@@ -11,3 +11,5 @@ harbor collective/
 .tokenop/
 .env
 .vercel
+data/*.db
+data/*.db-*

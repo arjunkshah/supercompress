@@ -43,6 +43,16 @@ docker run -p 8000:8000 -e HARBOR_DEMO=1 supercompress-api
 
 ---
 
+## Developer dashboard
+
+- **URL:** https://buildersshipbycursor.vercel.app/dashboard.html
+- Sign up → create API keys → track usage
+- Pass `X-API-Key: sc_live_...` on compress endpoints
+
+Auth + keys stored in SQLite (`data/supercompress.db` locally). Set `SUPERCOMPRESS_JWT_SECRET` in production.
+
+---
+
 ## For developers building AI apps
 
 **One HTTP call** — any language:

@@ -14,6 +14,7 @@
       <a href="index.html" class="logo">super<em>compress</em></a>
       <div class="nav-links">
         <a href="index.html">Home</a>
+        <a href="dashboard.html">Dashboard</a>
         <a href="app.html">Demo</a>
         <a href="https://github.com/arjunkshah/supercompress/blob/main/docs/API.md" target="_blank" rel="noopener">Full docs</a>
       </div>
@@ -37,9 +38,10 @@ compressed, stats = compress_for_turn(blocks, query)
 
     <section class="panel">
       <h2>Option B — HTTP API (any language)</h2>
-      <p class="panel-desc">Official public API — no install required.</p>
+      <p class="panel-desc">Official public API — <a href="dashboard.html">create a free API key</a>, then POST with <code>X-API-Key</code>.</p>
       <pre class="install">POST https://supercompress-api.onrender.com/v1/compress/blocks
 Content-Type: application/json
+X-API-Key: sc_live_YOUR_KEY
 
 {
   "context_blocks": ["## Tavily\\n...", "## GitHub\\n..."],

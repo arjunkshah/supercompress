@@ -36,10 +36,14 @@ class SuperCompressClient:
         self,
         base_url: str = "https://supercompress-api.onrender.com",
         *,
+        api_key: Optional[str] = None,
         timeout: float = 90.0,
     ):
         self.base_url = base_url.rstrip("/")
-        self._client = httpx.Client(base_url=self.base_url, timeout=timeout)
+        headers = {}
+        if api_key:
+            headers["X-API-Key"] = api_key.strip()
+        self._client = httpx.Client(base_url=self.base_url, timeout=timeout, headers=headers)
 
     def close(self) -> None:
         self._client.close()

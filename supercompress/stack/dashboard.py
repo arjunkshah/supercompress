@@ -1,0 +1,121 @@
+"""Dashboard API — signup, login, API keys, usage."""
+
+from __future__ import annotations
+
+import re
+from typing import Any, Dict, List
+
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field
+
+from supercompress.stack import auth, db
+
+router = APIRouter(tags=["Dashboard"])
+
+
+class SignupRequest(BaseModel):
+    email: str
+    password: str = Field(min_length=8)
+    name: str = ""
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
+class CreateKeyRequest(BaseModel):
+    name: str = "Default"
+
+
+class AuthResponse(BaseModel):
+    token: str
+    user: Dict[str, Any]
+
+
+class KeyCreatedResponse(BaseModel):
+    id: str
+    name: str
+    key_prefix: str
+    api_key: str
+    created_at: float
+
+
+_EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
+
+def _public_user(user: Dict[str, Any]) -> Dict[str, Any]:
+    return {"id": user["id"], "email": user["email"], "name": user.get("name", ""), "created_at": user["created_at"]}
+
+
+@router.post("/auth/signup", response_model=AuthResponse)
+def signup(req: SignupRequest) -> AuthResponse:
+    email = req.email.strip().lower()
+    if not _EMAIL_RE.match(email):
+        raise HTTPException(status_code=400, detail="Invalid email address.")
+    if db.get_user_by_email(email):
+        raise HTTPException(status_code=409, detail="Email already registered.")
+    user_id = auth.new_id()
+    user = db.create_user(user_id, email, auth.hash_password(req.password), req.name or email.split("@")[0])
+    token = auth.create_session_token(user_id)
+    return AuthResponse(token=token, user=_public_user(user))
+
+
+@router.post("/auth/login", response_model=AuthResponse)
+def login(req: LoginRequest) -> AuthResponse:
+    user = db.get_user_by_email(req.email)
+    if not user or not auth.verify_password(req.password, user["password_hash"]):
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
+    token = auth.create_session_token(user["id"])
+    return AuthResponse(token=token, user=_public_user(user))
+
+
+@router.get("/dashboard/me")
+def me(user: Dict[str, Any] = Depends(auth.require_user)) -> Dict[str, Any]:
+    return {"user": _public_user(user)}
+
+
+@router.get("/dashboard/keys")
+def list_keys(user: Dict[str, Any] = Depends(auth.require_user)) -> Dict[str, List[Dict[str, Any]]]:
+    keys = db.list_api_keys(user["id"])
+    return {
+        "keys": [
+            {
+                "id": k["id"],
+                "name": k["name"],
+                "key_prefix": k["key_prefix"],
+                "created_at": k["created_at"],
+                "last_used_at": k.get("last_used_at"),
+            }
+            for k in keys
+        ]
+    }
+
+
+@router.post("/dashboard/keys", response_model=KeyCreatedResponse)
+def create_key(
+    req: CreateKeyRequest,
+    user: Dict[str, Any] = Depends(auth.require_user),
+) -> KeyCreatedResponse:
+    full_key, prefix, key_hash = auth.generate_api_key()
+    key_id = auth.new_id()
+    record = db.create_api_key(key_id, user["id"], req.name or "Default", prefix, key_hash)
+    return KeyCreatedResponse(
+        id=record["id"],
+        name=record["name"],
+        key_prefix=prefix,
+        api_key=full_key,
+        created_at=record["created_at"],
+    )
+
+
+@router.delete("/dashboard/keys/{key_id}")
+def delete_key(key_id: str, user: Dict[str, Any] = Depends(auth.require_user)) -> Dict[str, bool]:
+    if not db.revoke_api_key(user["id"], key_id):
+        raise HTTPException(status_code=404, detail="Key not found.")
+    return {"ok": True}
+
+
+@router.get("/dashboard/usage")
+def usage(user: Dict[str, Any] = Depends(auth.require_user)) -> Dict[str, Any]:
+    return db.usage_summary(user["id"])

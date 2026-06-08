@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dashboard — SuperCompress</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body class="dash-page">
+  <div class="grain"></div>
+  <div class="glow glow--1"></div>
+
+  <nav class="nav">
+    <div class="wrap nav-inner">
+      <a href="index.html" class="logo">super<em>compress</em></a>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="app.html">Demo</a>
+        <a href="api.html">Docs</a>
+        <button type="button" id="logout-btn" class="btn btn-ghost btn-sm hidden">Sign out</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Auth -->
+  <main class="wrap dash-auth" id="auth-screen">
+    <div class="auth-card">
+      <h1>Developer dashboard</h1>
+      <p class="auth-sub">Create API keys, track usage, and call SuperCompress from any app.</p>
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" data-tab="login">Sign in</button>
+        <button type="button" class="auth-tab" data-tab="signup">Sign up</button>
+      </div>
+      <form id="login-form" class="auth-form">
+        <label class="field-label">Email</label>
+        <input class="field-input" type="email" name="email" required autocomplete="email" />
+        <label class="field-label">Password</label>
+        <input class="field-input" type="password" name="password" required minlength="8" autocomplete="current-password" />
+        <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+      </form>
+      <form id="signup-form" class="auth-form hidden">
+        <label class="field-label">Name</label>
+        <input class="field-input" type="text" name="name" autocomplete="name" />
+        <label class="field-label">Email</label>
+        <input class="field-input" type="email" name="email" required autocomplete="email" />
+        <label class="field-label">Password (8+ chars)</label>
+        <input class="field-input" type="password" name="password" required minlength="8" autocomplete="new-password" />
+        <button type="submit" class="btn btn-primary btn-block">Create account</button>
+      </form>
+      <p class="auth-error hidden" id="auth-error"></p>
+    </div>
+  </main>
+
+  <!-- Dashboard -->
+  <div class="dash-layout hidden" id="dash-screen">
+    <aside class="dash-sidebar">
+      <p class="dash-user" id="user-label">—</p>
+      <nav class="dash-nav">
+        <button type="button" class="dash-nav-item active" data-view="overview">Overview</button>
+        <button type="button" class="dash-nav-item" data-view="keys">API keys</button>
+        <button type="button" class="dash-nav-item" data-view="playground">Playground</button>
+        <button type="button" class="dash-nav-item" data-view="quickstart">Quickstart</button>
+      </nav>
+    </aside>
+
+    <main class="dash-main wrap">
+      <!-- Overview -->
+      <section class="dash-view" id="view-overview">
+        <header class="dash-header">
+          <h1>Overview</h1>
+          <p>Your compression API usage at a glance.</p>
+        </header>
+        <div class="stat-row" id="stat-row">
+          <div class="stat-card"><span class="stat-card-n" id="stat-requests">0</span><span class="stat-card-l">API requests</span></div>
+          <div class="stat-card"><span class="stat-card-n" id="stat-tokens-in">0</span><span class="stat-card-l">Tokens in</span></div>
+          <div class="stat-card"><span class="stat-card-n" id="stat-tokens-out">0</span><span class="stat-card-l">Tokens kept</span></div>
+          <div class="stat-card accent"><span class="stat-card-n" id="stat-savings">0%</span><span class="stat-card-l">Avg KV saved</span></div>
+        </div>
+        <div class="panel">
+          <h2>Recent requests</h2>
+          <div class="table-wrap" id="recent-table">
+            <p class="dim">No requests yet. Create a key and call the API.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Keys -->
+      <section class="dash-view hidden" id="view-keys">
+        <header class="dash-header dash-header-row">
+          <div>
+            <h1>API keys</h1>
+            <p>Pass as <code>X-API-Key</code> header on every compress request.</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="create-key-btn">+ New key</button>
+        </header>
+        <div class="panel" id="keys-list">
+          <p class="dim">Loading…</p>
+        </div>
+      </section>
+
+      <!-- Playground -->
+      <section class="dash-view hidden" id="view-playground">
+        <header class="dash-header">
+          <h1>Playground</h1>
+          <p>Test compression with your API key.</p>
+        </header>
+        <div class="panel">
+          <label class="field-label">API key</label>
+          <input class="field-input" id="pg-key" placeholder="sc_live_…" />
+          <label class="field-label">Context blocks (separate with ---)</label>
+          <textarea class="field-textarea" id="pg-context" rows="8">## Tavily
+Composio shipped OpenClaw plugin. Agent memory is the bottleneck.
+
+---
+## GitHub
+- #42 fix/auth-timeout — review requested
+- #39 feat/composio-triggers — draft
+
+---
+## Gmail
+- sponsor@builders — Demo due June 12</textarea>
+          <label class="field-label">Query</label>
+          <input class="field-input" id="pg-query" value="What should I ship today?" />
+          <button type="button" class="btn btn-primary" id="pg-run">Compress</button>
+          <div class="compress-result" id="pg-result"></div>
+        </div>
+      </section>
+
+      <!-- Quickstart -->
+      <section class="dash-view hidden" id="view-quickstart">
+        <header class="dash-header">
+          <h1>Quickstart</h1>
+          <p>Copy into your agent loop — replace <code>YOUR_KEY</code> with a key from the Keys tab.</p>
+        </header>
+        <div class="panel">
+          <h2>curl</h2>
+          <pre class="install" id="qs-curl"></pre>
+        </div>
+        <div class="panel">
+          <h2>Python</h2>
+          <pre class="install" id="qs-python"></pre>
+        </div>
+        <div class="panel">
+          <h2>JavaScript</h2>
+          <pre class="install" id="qs-js"></pre>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- New key modal -->
+  <div class="modal hidden" id="key-modal">
+    <div class="modal-card">
+      <h2 id="modal-title">Create API key</h2>
+      <form id="key-form">
+        <label class="field-label">Key name</label>
+        <input class="field-input" name="name" value="Production" required />
+        <button type="submit" class="btn btn-primary btn-block">Create</button>
+      </form>
+      <div class="key-reveal hidden" id="key-reveal">
+        <p class="warn-text">Copy now — you won't see this again.</p>
+        <pre class="install key-full" id="key-full"></pre>
+        <button type="button" class="btn btn-ghost btn-block" id="copy-key-btn">Copy key</button>
+        <button type="button" class="btn btn-primary btn-block" id="key-done-btn">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+</body>
+</html>

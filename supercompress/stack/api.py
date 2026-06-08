@@ -4,9 +4,10 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends, Request
 
 from supercompress import compare_policies, compress_for_turn
+from supercompress.stack.auth import log_request_usage, require_api_key
 from supercompress.stack.api_models import (
     CompareResponse,
     CompressBlocksRequest,
@@ -49,41 +50,53 @@ def api_health() -> Dict[str, Any]:
 
 
 @router.post("/compress/blocks", response_model=CompressResponse)
-def compress_blocks(req: CompressBlocksRequest) -> CompressResponse:
+def compress_blocks(
+    req: CompressBlocksRequest,
+    request: Request,
+    _key: Dict[str, Any] = Depends(require_api_key),
+) -> CompressResponse:
     """Recommended — pass Tavily + Composio blocks separately."""
     blocks = [b for b in req.context_blocks if b.strip()]
     compressed, result = compress_for_turn(blocks, req.query, budget_ratio=req.budget_ratio)
     merged = "\n\n---\n\n".join(blocks)
     fifo = compare_policies(merged, req.query, budget_ratio=req.budget_ratio)["FIFO"]
-    return CompressResponse(
-        compressed_text=compressed,
-        stats=_stats_from_result(result, fifo_tokens=fifo.kept_tokens),
-    )
+    stats = _stats_from_result(result, fifo_tokens=fifo.kept_tokens)
+    log_request_usage(request, "/v1/compress/blocks", stats.model_dump())
+    return CompressResponse(compressed_text=compressed, stats=stats)
 
 
 @router.post("/compress", response_model=CompressResponse)
-def compress_text(req: CompressTextRequest) -> CompressResponse:
+def compress_text(
+    req: CompressTextRequest,
+    request: Request,
+    _key: Dict[str, Any] = Depends(require_api_key),
+) -> CompressResponse:
     """Single string — splits on --- into blocks when present."""
     parts = [p.strip() for p in req.context.split("---") if p.strip()]
     blocks = parts if len(parts) > 1 else [req.context]
-    return compress_blocks(
-        CompressBlocksRequest(
-            context_blocks=blocks,
-            query=req.query,
-            budget_ratio=req.budget_ratio,
-        )
+    inner = CompressBlocksRequest(
+        context_blocks=blocks,
+        query=req.query,
+        budget_ratio=req.budget_ratio,
     )
+    return compress_blocks(inner, request, _key)
 
 
 @router.post("/compare", response_model=CompareResponse)
-def compare(req: CompressBlocksRequest) -> CompareResponse:
+def compare(
+    req: CompressBlocksRequest,
+    request: Request,
+    _key: Dict[str, Any] = Depends(require_api_key),
+) -> CompareResponse:
     blocks = [b for b in req.context_blocks if b.strip()]
     merged = "\n\n---\n\n".join(blocks)
     cmp = compare_policies(merged, req.query, budget_ratio=req.budget_ratio)
+    sc_stats = _stats_from_result(cmp["SuperCompress"])
+    log_request_usage(request, "/v1/compare", sc_stats.model_dump())
     return CompareResponse(
         query=req.query,
         fifo=_stats_from_result(cmp["FIFO"]),
-        supercompress=_stats_from_result(cmp["SuperCompress"]),
+        supercompress=sc_stats,
     )
 
 

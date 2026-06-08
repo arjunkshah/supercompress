@@ -71,9 +71,12 @@ async function runCompress() {
       ? { context_blocks: blocks, query, budget_ratio: 0.35 }
       : { context, query, budget_ratio: 0.35 };
     const url = blocks.length > 1 ? apiPath("/v1/compress/blocks") : apiPath("/v1/compress");
+    const apiKey = localStorage.getItem("sc_api_key") || "";
+    const headers = { "Content-Type": "application/json" };
+    if (apiKey) headers["X-API-Key"] = apiKey;
     const r = await fetch(url, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(body),
     });
     if (r.ok) {
@@ -99,7 +102,7 @@ async function runCompress() {
     );
     out.insertAdjacentHTML(
       "beforeend",
-      '\n\n<span class="dim">(Static fallback — API may be cold-starting on free tier; retry in ~30s)</span>'
+      '\n\n<span class="dim">(Static fallback — <a href="dashboard.html">get an API key</a> for live compression)</span>'
     );
   } else {
     out.textContent = "Demo data unavailable.";
