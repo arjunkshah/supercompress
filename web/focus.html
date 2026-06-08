@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Focus Coach — SuperCompress demo</title>
+  <link rel="stylesheet" href="assets/css/style.css?v=8" />
+  <style>
+    .focus-page { min-height: 100vh; background: var(--bg); padding: 48px 24px 80px; }
+    .focus-wrap { max-width: 640px; margin: 0 auto; }
+    .focus-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--pink-dark);
+      background: var(--pink-soft);
+      padding: 6px 12px;
+      border-radius: 999px;
+      margin-bottom: 16px;
+    }
+    .focus-title {
+      font-family: var(--serif);
+      font-size: clamp(32px, 5vw, 44px);
+      font-weight: 400;
+      line-height: 1.1;
+      margin-bottom: 12px;
+    }
+    .focus-sub { color: var(--text-secondary); font-size: 15px; line-height: 1.5; margin-bottom: 32px; }
+    .focus-card {
+      background: var(--surface);
+      border: 0.5px solid rgb(237, 236, 233);
+      border-radius: 16px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+    .focus-card label { display: block; font-size: 13px; font-weight: 500; margin-bottom: 8px; color: var(--text-secondary); }
+    .focus-card input, .focus-card textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      font-family: var(--sans);
+      font-size: 15px;
+      margin-bottom: 16px;
+      background: var(--bg);
+    }
+    .focus-card textarea { min-height: 100px; resize: vertical; font-size: 14px; }
+    .focus-btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: var(--pink);
+      font-family: var(--sans);
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+    }
+    .focus-btn:disabled { opacity: 0.6; cursor: wait; }
+    .focus-result { display: none; }
+    .focus-result.visible { display: block; }
+    .focus-answer {
+      font-size: 15px;
+      line-height: 1.65;
+      white-space: pre-wrap;
+      color: var(--text);
+    }
+    .focus-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .focus-stat {
+      text-align: center;
+      padding: 16px 8px;
+      border-radius: 12px;
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+    }
+    .focus-stat-n { font-family: var(--serif); font-size: 1.4rem; display: block; }
+    .focus-stat-l { font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+    .focus-phases { font-size: 13px; color: var(--text-secondary); margin-top: 16px; }
+    .focus-phases li { margin-bottom: 4px; }
+    .focus-phases code { color: var(--pink-dark); font-size: 12px; }
+    .focus-loading { text-align: center; padding: 40px 0; color: var(--text-muted); }
+    .focus-spinner {
+      width: 32px; height: 32px; margin: 0 auto 12px;
+      border: 3px solid var(--pink-soft);
+      border-top-color: var(--pink-dark);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .focus-back { font-size: 14px; color: var(--text-secondary); margin-bottom: 24px; display: inline-block; }
+    .focus-back:hover { color: var(--text); }
+  </style>
+</head>
+<body class="focus-page">
+  <div class="focus-wrap">
+    <a href="index.html" class="focus-back">← SuperCompress</a>
+    <span class="focus-badge">Example app</span>
+    <h1 class="focus-title">Focus Coach</h1>
+    <p class="focus-sub">A task app that calls <code>POST /v1/agent/turn</code> instead of OpenAI. One API key — Tavily, Composio, compress, Nebius included.</p>
+
+    <div class="focus-card" id="form-card">
+      <label for="api-key">API key</label>
+      <input id="api-key" type="password" placeholder="sc_live_…" autocomplete="off" />
+
+      <label for="query">What do you need help with?</label>
+      <input id="query" type="text" value="What should I focus on in the next 2 hours?" />
+
+      <label for="tasks">Your tasks (one per line)</label>
+      <textarea id="tasks">Finish SuperCompress demo for judges
+Fix integration status bug
+Record Luma submission video</textarea>
+
+      <button type="button" class="focus-btn" id="run-btn">Get focus plan</button>
+    </div>
+
+    <div class="focus-card focus-result" id="result-card">
+      <div class="focus-stats" id="stats"></div>
+      <div class="focus-answer" id="answer"></div>
+      <ul class="focus-phases" id="phases"></ul>
+    </div>
+
+    <div class="focus-card focus-loading hidden" id="loading-card">
+      <div class="focus-spinner"></div>
+      <p>Tavily → Composio → compress → Nebius… (~15–60s)</p>
+    </div>
+  </div>
+
+  <script src="assets/js/config.js"></script>
+  <script>
+    const KEY = "sc_api_key";
+    const $ = (s) => document.querySelector(s);
+    const apiBase = (window.SUPERCOMPRESS_API || "").replace(/\/$/, "");
+
+    const saved = localStorage.getItem(KEY);
+    if (saved) $("#api-key").value = saved;
+
+    function apiPath(p) {
+      return apiBase ? `${apiBase}${p}` : p;
+    }
+
+    $("#run-btn").addEventListener("click", async () => {
+      const key = $("#api-key").value.trim();
+      const query = $("#query").value.trim();
+      const tasks = $("#tasks").value.split("\n").map((s) => s.trim()).filter(Boolean);
+      if (!key) { alert("Paste your API key from the dashboard."); return; }
+      localStorage.setItem(KEY, key);
+
+      $("#form-card").classList.add("hidden");
+      $("#result-card").classList.remove("visible");
+      $("#loading-card").classList.remove("hidden");
+
+      const context_blocks = [
+        "## My app tasks\n" + tasks.map((t) => `- ${t}`).join("\n"),
+        "## Reminders\n- Team standup soon\n- Ship before deadline",
+      ];
+
+      try {
+        const r = await fetch(apiPath("/v1/agent/turn"), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "X-API-Key": key,
+            "ngrok-skip-browser-warning": "1",
+          },
+          body: JSON.stringify({ query, context_blocks }),
+        });
+        const text = await r.text();
+        let d;
+        try { d = JSON.parse(text); } catch { throw new Error("API offline or invalid response."); }
+        if (!r.ok) throw new Error(d.detail || "Request failed");
+
+        const m = d.memory || {};
+        $("#stats").innerHTML = `
+          <div class="focus-stat"><span class="focus-stat-n">${m.original_tokens ?? "—"}</span><span class="focus-stat-l">tokens in</span></div>
+          <div class="focus-stat"><span class="focus-stat-n">${m.kept_tokens ?? "—"}</span><span class="focus-stat-l">kept</span></div>
+          <div class="focus-stat"><span class="focus-stat-n">${Number(m.kv_savings_pct || 0).toFixed(0)}%</span><span class="focus-stat-l">KV saved</span></div>`;
+        $("#answer").textContent = d.answer || "";
+        $("#phases").innerHTML = (d.phases || [])
+          .slice(0, 6)
+          .map((p) => `<li><code>${p.phase}</code> ${p.detail}</li>`)
+          .join("");
+        $("#loading-card").classList.add("hidden");
+        $("#result-card").classList.add("visible");
+        $("#form-card").classList.remove("hidden");
+      } catch (e) {
+        $("#loading-card").classList.add("hidden");
+        $("#form-card").classList.remove("hidden");
+        alert(e.message);
+      }
+    });
+  </script>
+</body>
+</html>
