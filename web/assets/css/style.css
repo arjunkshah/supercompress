@@ -1728,6 +1728,39 @@ footer:not(.df-footer):not(.footer-df) a:hover { color: #fff; }
 }
 
 /* Integrations */
+.int-explainer {
+  margin-bottom: 20px;
+  padding: 22px 26px;
+}
+.int-explainer-lead {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.int-pipeline {
+  margin: 0 0 14px;
+  padding-left: 20px;
+  font-size: 14px;
+  line-height: 1.65;
+  color: var(--text-secondary);
+}
+.int-pipeline li { margin-bottom: 4px; }
+.int-pipeline code {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  background: var(--bg-muted);
+  padding: 1px 5px;
+  border-radius: 6px;
+}
+.int-explainer-foot {
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
 .int-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -1760,10 +1793,11 @@ footer:not(.df-footer):not(.footer-df) a:hover { color: #fff; }
   border: 1px solid var(--line);
   flex-shrink: 0;
 }
-.int-card-icon--logo svg {
+.int-card-icon--logo .int-logo-img {
   width: 24px;
   height: 24px;
   display: block;
+  object-fit: contain;
 }
 .int-card-meta { min-width: 0; }
 .int-card-name {

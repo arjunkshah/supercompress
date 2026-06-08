@@ -204,16 +204,21 @@ const TOOLKIT_LABELS = {
   googlecalendar: "Google Calendar",
 };
 
-const TOOLKIT_LOGOS = {
-  gmail: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#EA4335" d="M22 6.5V17.5C22 18.88 20.88 20 19.5 20H4.5C3.12 20 2 18.88 2 17.5V6.5L12 13.5L22 6.5Z"/><path fill="#FBBC05" d="M2 6.5L12 13.5L22 6.5L19.5 5H4.5L2 6.5Z"/><path fill="#34A853" d="M2 6.5V17.5C2 18.88 3.12 20 4.5 20H6L6 13.5L2 6.5Z"/><path fill="#4285F4" d="M22 6.5V17.5C22 18.88 20.88 20 19.5 20H18V13.5L22 6.5Z"/></svg>`,
-  github: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2C6.477 2 2 6.484 2 12.021c0 4.428 2.865 8.184 6.839 9.504.5.092.682-.217.682-.483 0-.237-.009-.868-.014-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.021C22 6.484 17.522 2 12 2z"/></svg>`,
-  linear: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#5E6AD2" d="M3 3h8.5L3 11.5V3zm0 18h8.5L3 12.5V21zm10.5 0H21L13.5 12.5V21zM21 3h-7.5v8.5L21 3z"/></svg>`,
-  slack: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#E01E5A" d="M6 15a2 2 0 01-2 2 2 2 0 01-2-2 2 2 0 012-2h2v2zm1 0a2 2 0 012-2 2 2 0 012 2v5a2 2 0 01-2 2 2 2 0 01-2-2v-5z"/><path fill="#36C5F0" d="M9 6a2 2 0 01-2-2 2 2 0 012-2 2 2 0 012 2v2H9zm0 1a2 2 0 012 2 2 2 0 01-2 2H4a2 2 0 01-2-2 2 2 0 012-2h5z"/><path fill="#2EB67D" d="M18 9a2 2 0 012-2 2 2 0 012 2 2 2 0 01-2 2h-2V9zm-1 0a2 2 0 01-2 2 2 2 0 01-2-2V4a2 2 0 012-2 2 2 0 012 2v5z"/><path fill="#ECB22E" d="M15 18a2 2 0 012 2 2 2 0 01-2 2 2 2 0 01-2-2v-2h2zm0-1a2 2 0 01-2-2 2 2 0 012-2h5a2 2 0 012 2 2 2 0 01-2 2h-5z"/></svg>`,
-  googlecalendar: `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M18 2h-1V0h-2v2H9V0H7v2H6a3 3 0 00-3 3v13a3 3 0 003 3h12a3 3 0 003-3V5a3 3 0 00-3-3zm1 16a1 1 0 01-1 1H6a1 1 0 01-1-1V9h14v9z"/><path fill="#EA4335" d="M7 12h3v3H7z"/></svg>`,
+const TOOLKIT_ICONS = {
+  gmail: { slug: "gmail", color: "EA4335" },
+  github: { slug: "github", color: "181717" },
+  linear: { slug: "linear", color: "5E6AD2" },
+  slack: { slug: "slack", color: "4A154B" },
+  googlecalendar: { slug: "googlecalendar", color: "4285F4" },
 };
 
 function toolkitLogo(id) {
-  return TOOLKIT_LOGOS[id] || `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" fill="currentColor"/></svg>`;
+  const icon = TOOLKIT_ICONS[id];
+  if (icon) {
+    const src = `https://cdn.simpleicons.org/${icon.slug}/${icon.color}`;
+    return `<img class="int-logo-img" src="${src}" alt="" width="24" height="24" loading="lazy" decoding="async" />`;
+  }
+  return `<img class="int-logo-img" src="https://cdn.simpleicons.org/composio/000000" alt="" width="24" height="24" loading="lazy" />`;
 }
 
 function toolkitLabel(id) {

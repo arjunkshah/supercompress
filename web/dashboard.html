@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard — SuperCompress</title>
   <meta name="theme-color" content="rgb(251,251,248)" />
-  <link rel="stylesheet" href="assets/css/style.css?v=7" />
+  <link rel="stylesheet" href="assets/css/style.css?v=8" />
 </head>
 <body class="dash-page">
   <header class="df-header">
@@ -131,12 +131,23 @@
       <section class="dash-view hidden" id="view-integrations">
         <header class="dash-header">
           <h1>Integrations</h1>
-          <p>Connect Composio apps once — every API call gathers from them automatically.</p>
+          <p>Connect your apps once. Every API call pulls live context from them automatically.</p>
         </header>
+        <div class="int-explainer dash-panel">
+          <p class="int-explainer-lead">What SuperCompress does in one call</p>
+          <ol class="int-pipeline">
+            <li><strong>Tavily</strong> — web research for your query</li>
+            <li><strong>Your apps</strong> — GitHub PRs, Gmail, Linear, Slack, Calendar (via Composio)</li>
+            <li><strong>Your product</strong> — tasks &amp; reminders you pass as <code>context_blocks</code></li>
+            <li><strong>SuperCompress</strong> — compresses all of it to fit the model budget</li>
+            <li><strong>Nebius</strong> — generates the answer you show in your UI</li>
+          </ol>
+          <p class="int-explainer-foot">Integrations exist so you don't build Gmail/GitHub/Linear connectors yourself — we gather from the user's connected accounts on every turn.</p>
+        </div>
         <div class="int-grid" id="integrations-list">
           <p class="dash-empty">Loading…</p>
         </div>
-        <p class="dash-footnote">Tavily + Nebius are hosted by us. You only connect Composio here.</p>
+        <p class="dash-footnote">Tavily + Nebius run on our servers — no setup. Connect Composio apps above so agent turns include your users' real inbox, repos, and tasks.</p>
       </section>
 
       <!-- Playground -->
@@ -211,6 +222,6 @@
   <script src="assets/js/config.js"></script>
   <script src="assets/js/firebase-auth.js?v=3"></script>
   <script src="assets/js/site.js?v=4"></script>
-  <script src="assets/js/dashboard.js?v=7"></script>
+  <script src="assets/js/dashboard.js?v=8"></script>
 </body>
 </html>
