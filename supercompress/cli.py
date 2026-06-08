@@ -154,6 +154,14 @@ def cmd_demo() -> None:
     runpy.run_path(str(script), run_name="__main__")
 
 
+@app.command("turns")
+def cmd_turns() -> None:
+    """Turn 4 demo — context growth vs SuperCompress (best for Twitter/video)."""
+    from supercompress.stack.turn4_demo import run_turn4_demo
+
+    raise typer.Exit(run_turn4_demo())
+
+
 @app.command("serve")
 def cmd_serve(host: str = "127.0.0.1", port: int = 8787) -> None:
     """Start API + OpenClaw webhook bridge."""

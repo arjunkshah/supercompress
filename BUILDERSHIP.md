@@ -13,8 +13,8 @@ User → Tavily → Composio → SuperCompress → Nebius → Composio
 ## 60-second demo (no keys)
 
 ```bash
-./bootstrap.sh
-supercompress loop
+./setup.sh
+./bin/supercompress loop
 ```
 
 **Say:** "Watch the full stack — gather, compress, infer, act. KV savings every turn."

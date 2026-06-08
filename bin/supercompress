@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# Wrapper — runs the supercompress CLI from the project venv
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+
+if [[ ! -d "$ROOT/.venv" ]]; then
+  echo "Not set up yet. Run:"
+  echo "  ./setup.sh"
+  exit 1
+fi
+
+# shellcheck disable=SC1091
+source "$ROOT/.venv/bin/activate"
+exec supercompress "$@"

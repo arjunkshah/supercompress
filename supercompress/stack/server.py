@@ -1,17 +1,21 @@
-"""Minimal API — health, doctor, OpenClaw webhook."""
+"""API + static site + OpenClaw webhook."""
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Dict
 
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
+from supercompress.stack._paths import ROOT
 from supercompress.stack.agent.loop import StackAgent
 from supercompress.stack.agent.prompts import OPENCLAW_BRIDGE_SYSTEM
 from supercompress.stack.config import get_settings
 
-app = FastAPI(title="SuperCompress", version="0.2.0")
+app = FastAPI(title="SuperCompress", version="0.3.0")
+WEB_DIR = ROOT / "web"
 
 
 class OpenClawMessage(BaseModel):
@@ -19,7 +23,7 @@ class OpenClawMessage(BaseModel):
     session_id: str = "default"
 
 
-@app.get("/health")
+@app.get("/api/health")
 def health() -> Dict[str, Any]:
     s = get_settings()
     return {
@@ -29,6 +33,12 @@ def health() -> Dict[str, Any]:
     }
 
 
+@app.get("/health")
+def health_legacy() -> Dict[str, Any]:
+    return health()
+
+
+@app.get("/api/doctor")
 @app.get("/doctor")
 def doctor() -> Dict[str, Any]:
     from supercompress.stack.doctor import run_doctor_checks
@@ -61,6 +71,11 @@ def openclaw_chat(payload: OpenClawMessage) -> Dict[str, str]:
 def openclaw_manifest() -> Dict[str, Any]:
     return {
         "name": "supercompress",
-        "endpoints": {"chat": "/openclaw/chat", "health": "/health"},
+        "site": "/",
+        "endpoints": {"chat": "/openclaw/chat", "health": "/api/health"},
         "stack": ["openclaw", "tavily", "composio", "supercompress", "nebius"],
     }
+
+
+if WEB_DIR.is_dir():
+    app.mount("/", StaticFiles(directory=str(WEB_DIR), html=True), name="site")

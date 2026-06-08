@@ -17,8 +17,8 @@ Multi-turn agents accumulate tool output every turn. By turn 4, context explodes
 ```bash
 git clone https://github.com/arjunkshah/supercompress.git
 cd supercompress
-./bootstrap.sh
-supercompress loop
+./setup.sh
+./bin/supercompress loop
 ```
 
 Live (with BuilderShip keys):
