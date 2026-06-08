@@ -26,17 +26,40 @@
   </nav>
 
   <main>
-    <section class="hero-exa">
-      <h1>Agent memory,<br />built for AI apps</h1>
-      <p class="lead">One API for search, apps, compression, and inference. Every call runs Tavily → Composio → SuperCompress → Nebius.</p>
-      <div class="hero-actions">
-        <a href="dashboard.html" class="btn btn-primary">Try API for free</a>
-        <a href="api.html" class="btn btn-ghost">Read docs</a>
-      </div>
-    </section>
+    <section class="hero-wrap">
+      <div class="hero-grid" aria-hidden="true" id="hero-grid"></div>
+      <div class="hero-orb hero-orb--1" aria-hidden="true"></div>
+      <div class="hero-orb hero-orb--2" aria-hidden="true"></div>
 
-    <div class="wrap">
-      <div class="api-panel" id="api-demo">
+      <div class="hero-exa">
+        <p class="hero-badge reveal" data-delay="0">
+          <span class="hero-badge-dot"></span>
+          Tavily · Composio · Nebius — every call
+        </p>
+        <h1 class="hero-title">
+          <span class="reveal-line"><span class="reveal" data-delay="1">Agent memory,</span></span>
+          <span class="reveal-line"><span class="reveal hero-accent" data-delay="2">built for AI apps</span></span>
+        </h1>
+        <p class="lead reveal" data-delay="3">One API for search, apps, compression, and inference.<br class="hero-br" /> Replace OpenAI — sponsors run automatically.</p>
+        <div class="hero-actions reveal" data-delay="4">
+          <a href="dashboard.html" class="btn btn-primary btn-glow">Try API for free</a>
+          <a href="api.html" class="btn btn-ghost">Read docs</a>
+        </div>
+        <div class="hero-stack reveal" data-delay="5" id="hero-stack">
+          <span class="stack-step active" data-step="0">Query</span>
+          <span class="stack-arrow">→</span>
+          <span class="stack-step" data-step="1">Tavily</span>
+          <span class="stack-arrow">→</span>
+          <span class="stack-step" data-step="2">Composio</span>
+          <span class="stack-arrow">→</span>
+          <span class="stack-step stack-core" data-step="3">Compress</span>
+          <span class="stack-arrow">→</span>
+          <span class="stack-step" data-step="4">Nebius</span>
+        </div>
+      </div>
+
+      <div class="wrap hero-panel-wrap">
+      <div class="api-panel reveal-scale" data-delay="6" id="api-demo">
         <div class="api-panel-top">
           <button type="button" class="api-tab active" data-tab="request">Request</button>
           <button type="button" class="api-tab" data-tab="response">Response</button>
@@ -70,9 +93,10 @@
 }</pre>
         </div>
       </div>
-    </div>
+      </div>
+    </section>
 
-    <section class="section wrap" id="stack">
+    <section class="section wrap reveal-section" id="stack">
       <p class="section-label">The stack</p>
       <h2 class="section-title">Every sponsor. Every call. No exceptions.</h2>
       <p class="section-lead">Pass your app state. We run the full pipeline — web research, connected apps, memory compression, Nebius inference.</p>
@@ -97,7 +121,7 @@
       </div>
     </section>
 
-    <section class="section wrap" id="features">
+    <section class="section wrap reveal-section" id="features">
       <p class="section-label">How it works</p>
       <h2 class="section-title">Everything your agent needs in one place</h2>
       <div class="feature-tabs" id="feature-tabs">
@@ -136,7 +160,7 @@
       </div>
     </section>
 
-    <section class="section wrap">
+    <section class="section wrap reveal-section">
       <p class="section-label">For builders</p>
       <h2 class="section-title">Built for how you ship</h2>
       <div class="grid-3">
@@ -155,7 +179,7 @@
       </div>
     </section>
 
-    <section class="section wrap">
+    <section class="section wrap reveal-section">
       <div class="quote-grid">
         <div class="quote-card">
           <blockquote>"I stopped calling OpenAI. One POST and Tavily, Composio, compression, and Nebius just happen."</blockquote>
@@ -168,7 +192,7 @@
       </div>
     </section>
 
-    <section class="cta-section">
+    <section class="cta-section reveal-section">
       <h2>Your agents deserve better memory</h2>
       <p>Free API keys. Connect Composio. Ship in an afternoon.</p>
       <a href="dashboard.html" class="btn btn-primary">Open dashboard</a>
