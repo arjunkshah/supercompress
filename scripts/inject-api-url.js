@@ -3,14 +3,12 @@
 const fs = require("fs");
 const path = require("path");
 
-const apiUrl =
-  process.env.SUPERCOMPRESS_API_URL ||
-  process.env.RENDER_EXTERNAL_URL ||
-  "https://supercompress-api.onrender.com";
+// Empty = same-origin; Vercel rewrites /v1/* → Render (no CORS issues).
+const apiUrl = process.env.SUPERCOMPRESS_API_URL || "";
 
 const out = path.join(__dirname, "..", "web", "assets", "js", "config.js");
 fs.writeFileSync(
   out,
-  `// Auto-generated at build — official SuperCompress API\nwindow.SUPERCOMPRESS_API = "${apiUrl.replace(/"/g, "")}";\n`
+  `// Auto-generated at Vercel build — "" uses /v1 proxy on same domain\nwindow.SUPERCOMPRESS_API = "${apiUrl.replace(/"/g, "")}";\n`
 );
-console.log("API URL:", apiUrl);
+console.log("API URL:", apiUrl || "(same-origin /v1 proxy)");

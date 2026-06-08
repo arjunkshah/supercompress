@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Any, Dict
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -15,6 +14,7 @@ from supercompress.stack.agent.loop import StackAgent
 from supercompress.stack.agent.prompts import OPENCLAW_BRIDGE_SYSTEM
 from supercompress.stack.api import router as api_router
 from supercompress.stack.config import get_settings
+from supercompress.stack.cors import setup_cors
 from supercompress.stack.dashboard import router as dashboard_router
 from supercompress.stack.db import init_db
 
@@ -28,13 +28,7 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+setup_cors(app)
 
 app.include_router(api_router, prefix="/v1")
 app.include_router(api_router, prefix="/api")  # legacy alias

@@ -1,2 +1,2 @@
-// Default — overridden at Vercel build (scripts/inject-api-url.js)
-window.SUPERCOMPRESS_API = "https://supercompress-api.onrender.com";
+// "" = same-origin (/v1 proxied on Vercel). Set full URL for direct API access.
+window.SUPERCOMPRESS_API = "";

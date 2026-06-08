@@ -3,9 +3,9 @@
 from __future__ import annotations
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 
 from supercompress.stack.api import router as api_router
+from supercompress.stack.cors import setup_cors
 from supercompress.stack.dashboard import router as dashboard_router
 from supercompress.stack.db import init_db
 
@@ -19,13 +19,7 @@ app = FastAPI(
     redoc_url="/redoc",
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+setup_cors(app)
 
 app.include_router(api_router, prefix="/v1")
 app.include_router(api_router, prefix="/api")
