@@ -12,7 +12,7 @@ on:
 
 jobs:
   render-deploy:
-    if: ${{ secrets.RENDER_API_KEY != '' && secrets.RENDER_SERVICE_ID != '' }}
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Render deploy
