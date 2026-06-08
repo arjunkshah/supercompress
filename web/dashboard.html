@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard — SuperCompress</title>
   <meta name="theme-color" content="rgb(251,251,248)" />
-  <link rel="stylesheet" href="assets/css/style.css?v=5" />
+  <link rel="stylesheet" href="assets/css/style.css?v=6" />
 </head>
 <body class="dash-page">
   <header class="df-header">
@@ -24,6 +24,13 @@
           <a href="app.html">Demo</a>
           <a href="api.html">Docs</a>
         </nav>
+        <div class="dash-header-user hidden" id="header-user-pill">
+          <span class="dash-header-avatar" id="header-user-initial" aria-hidden="true">A</span>
+          <span class="dash-header-meta">
+            <span class="dash-header-name" id="header-user-name">Account</span>
+            <span class="dash-header-email" id="header-user-email"></span>
+          </span>
+        </div>
         <div class="df-cta-pill">
           <button type="button" id="logout-btn" class="df-logout-btn hidden">Sign out</button>
         </div>
@@ -33,6 +40,13 @@
       </button>
     </div>
     <div class="df-mobile-nav hidden" id="df-mobile-nav">
+      <div class="dash-mobile-user hidden" id="header-user-mobile">
+        <span class="dash-header-avatar" id="header-user-initial-mobile" aria-hidden="true">A</span>
+        <span class="dash-header-meta">
+          <span class="dash-header-name" id="header-user-name-mobile">Account</span>
+          <span class="dash-header-email" id="header-user-email-mobile"></span>
+        </span>
+      </div>
       <a href="index.html">Home</a>
       <a href="app.html">Demo</a>
       <a href="api.html">Docs</a>
@@ -83,7 +97,6 @@
   <!-- Dashboard -->
   <div class="dash-layout hidden" id="dash-screen">
     <aside class="dash-sidebar">
-      <p class="dash-user" id="user-label">—</p>
       <nav class="dash-nav">
         <button type="button" class="dash-nav-item active" data-view="overview">Overview</button>
         <button type="button" class="dash-nav-item" data-view="keys">API keys</button>
@@ -93,7 +106,7 @@
       </nav>
     </aside>
 
-    <main class="dash-main wrap">
+    <main class="dash-main">
       <!-- Overview -->
       <section class="dash-view" id="view-overview">
         <header class="dash-header">
@@ -106,10 +119,10 @@
           <div class="stat-card"><span class="stat-card-n" id="stat-tokens-out">0</span><span class="stat-card-l">Tokens kept</span></div>
           <div class="stat-card accent"><span class="stat-card-n" id="stat-savings">0%</span><span class="stat-card-l">Avg KV saved</span></div>
         </div>
-        <div class="panel">
-          <h2>Recent requests</h2>
+        <div class="dash-panel">
+          <h2 class="dash-panel-title">Recent requests</h2>
           <div class="table-wrap" id="recent-table">
-            <p class="dim">No requests yet. Create a key and call the API.</p>
+            <p class="dash-empty">No requests yet. Create a key and call the API.</p>
           </div>
         </div>
       </section>
@@ -119,47 +132,61 @@
         <header class="dash-header dash-header-row">
           <div>
             <h1>API keys</h1>
-            <p>Pass as <code>X-API-Key</code> header on every compress request.</p>
+            <p>Pass as <code>X-API-Key</code> on every agent turn request.</p>
           </div>
           <button type="button" class="btn btn-pear" id="create-key-btn">+ New key</button>
         </header>
-        <div class="panel" id="keys-list">
-          <p class="dim">Loading…</p>
+        <div class="keys-grid" id="keys-list">
+          <p class="dash-empty">Loading…</p>
         </div>
       </section>
 
       <!-- Integrations -->
       <section class="dash-view hidden" id="view-integrations">
         <header class="dash-header">
-          <h1>Composio integrations</h1>
-          <p>Connect once — every API call gathers from these apps. Required for the full stack.</p>
+          <h1>Integrations</h1>
+          <p>Connect Composio apps once — every API call gathers from them automatically.</p>
         </header>
-        <div class="panel" id="integrations-list">
-          <p class="dim">Loading…</p>
+        <div class="int-grid" id="integrations-list">
+          <p class="dash-empty">Loading…</p>
         </div>
-        <p class="dim" style="margin-top:12px">Tavily + Nebius are hosted by us. You only connect Composio here.</p>
+        <p class="dash-footnote">Tavily + Nebius are hosted by us. You only connect Composio here.</p>
       </section>
 
       <!-- Playground -->
       <section class="dash-view hidden" id="view-playground">
         <header class="dash-header">
           <h1>Playground</h1>
-          <p>Run a full agent turn — we search, gather apps, compress, and answer.</p>
+          <p>Run a full agent turn — Tavily, Composio, compress, Nebius in one call.</p>
         </header>
-        <div class="panel">
-          <label class="field-label">API key</label>
-          <input class="field-input" id="pg-key" placeholder="sc_live_…" />
-          <label class="field-label">Your app context (optional — simulates your DB)</label>
-          <textarea class="field-textarea" id="pg-context" rows="4">## User tasks
+        <div class="pg-layout">
+          <div class="dash-panel pg-form">
+            <div class="pg-field">
+              <label class="field-label" for="pg-key">API key</label>
+              <input class="field-input" id="pg-key" placeholder="sc_live_…" autocomplete="off" />
+            </div>
+            <div class="pg-field">
+              <label class="field-label" for="pg-query">User query</label>
+              <textarea class="field-textarea pg-query" id="pg-query" rows="3">What should I focus on today?</textarea>
+            </div>
+            <div class="pg-field">
+              <label class="field-label" for="pg-context">App context blocks</label>
+              <p class="field-hint">Markdown blocks from your app — tasks, reminders, session state.</p>
+              <textarea class="field-textarea pg-context" id="pg-context" rows="10">## User tasks
 - Ship onboarding flow
 - Fix reminder timezone bug
 
 ## Reminders
 - Call dentist Tuesday 3pm</textarea>
-          <label class="field-label">User query</label>
-          <textarea class="field-textarea" id="pg-query" rows="2">What should I focus on today?</textarea>
-          <button type="button" class="btn btn-pear" id="pg-run">Run agent turn</button>
-          <div class="compress-result" id="pg-result"></div>
+            </div>
+            <button type="button" class="btn btn-pear btn-block" id="pg-run">Run agent turn</button>
+          </div>
+          <div class="dash-panel pg-output">
+            <h2 class="dash-panel-title">Response</h2>
+            <div class="pg-result" id="pg-result">
+              <p class="pg-placeholder">Results appear here — answer, memory savings, and sponsor stack.</p>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -169,17 +196,19 @@
           <h1>Quickstart</h1>
           <p>Copy into your agent loop — replace <code>YOUR_KEY</code> with a key from the Keys tab.</p>
         </header>
-        <div class="panel">
-          <h2>curl</h2>
-          <pre class="install" id="qs-curl"></pre>
-        </div>
-        <div class="panel">
-          <h2>Python</h2>
-          <pre class="install" id="qs-python"></pre>
-        </div>
-        <div class="panel">
-          <h2>JavaScript</h2>
-          <pre class="install" id="qs-js"></pre>
+        <div class="qs-grid">
+          <div class="dash-panel">
+            <h2 class="dash-panel-title">curl</h2>
+            <pre class="install" id="qs-curl"></pre>
+          </div>
+          <div class="dash-panel">
+            <h2 class="dash-panel-title">Python</h2>
+            <pre class="install" id="qs-python"></pre>
+          </div>
+          <div class="dash-panel">
+            <h2 class="dash-panel-title">JavaScript</h2>
+            <pre class="install" id="qs-js"></pre>
+          </div>
         </div>
       </section>
     </main>
@@ -197,7 +226,7 @@
       <div class="key-reveal hidden" id="key-reveal">
         <p class="warn-text">Copy now — you won't see this again.</p>
         <pre class="install key-full" id="key-full"></pre>
-        <button type="button" class="btn btn-ghost btn-block" id="copy-key-btn">Copy key</button>
+        <button type="button" class="btn btn-outline btn-block" id="copy-key-btn">Copy key</button>
         <button type="button" class="btn btn-pear btn-block" id="key-done-btn">Done</button>
       </div>
     </div>
@@ -206,6 +235,6 @@
   <script src="assets/js/config.js"></script>
   <script src="assets/js/firebase-auth.js?v=2"></script>
   <script src="assets/js/site.js?v=4"></script>
-  <script src="assets/js/dashboard.js?v=4"></script>
+  <script src="assets/js/dashboard.js?v=5"></script>
 </body>
 </html>

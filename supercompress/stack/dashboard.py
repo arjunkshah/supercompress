@@ -15,7 +15,7 @@ from supercompress.stack.firebase_auth import firebase_enabled, public_config
 
 router = APIRouter(tags=["Dashboard"])
 
-CONNECTABLE_TOOLKITS = ["gmail", "github", "linear", "slack", "notion", "googlecalendar"]
+CONNECTABLE_TOOLKITS = ["gmail", "github", "linear", "slack", "googlecalendar"]
 
 
 class SignupRequest(BaseModel):

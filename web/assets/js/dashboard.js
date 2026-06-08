@@ -69,11 +69,33 @@ async function api(method, path, body) {
   return fetchJson(method, path, body, await authHeaders());
 }
 
+function setHeaderUser(user) {
+  const name = user.name || user.email?.split("@")[0] || "Account";
+  const email = user.email || "";
+  const initial = (name.charAt(0) || email.charAt(0) || "A").toUpperCase();
+  const pairs = [
+    ["#header-user-name", name],
+    ["#header-user-email", email],
+    ["#header-user-initial", initial],
+    ["#header-user-name-mobile", name],
+    ["#header-user-email-mobile", email],
+    ["#header-user-initial-mobile", initial],
+  ];
+  pairs.forEach(([sel, val]) => {
+    const el = $(sel);
+    if (el) el.textContent = val;
+  });
+  $("#header-user-pill")?.classList.remove("hidden");
+  $("#header-user-mobile")?.classList.remove("hidden");
+}
+
 function showAuth() {
   $("#auth-screen")?.classList.remove("hidden");
   $("#dash-screen")?.classList.add("hidden");
   $("#logout-btn")?.classList.add("hidden");
   $("#logout-btn-mobile")?.classList.add("hidden");
+  $("#header-user-pill")?.classList.add("hidden");
+  $("#header-user-mobile")?.classList.add("hidden");
 }
 
 function showAuthError(message) {
@@ -108,7 +130,7 @@ function showDash(user) {
   $("#dash-screen")?.classList.remove("hidden");
   $("#logout-btn")?.classList.remove("hidden");
   $("#logout-btn-mobile")?.classList.remove("hidden");
-  $("#user-label").textContent = user.name || user.email || "Signed in";
+  setHeaderUser(user);
   loadOverview();
   loadKeys();
   loadIntegrations();
@@ -129,8 +151,27 @@ function fmtTime(ts) {
   return new Date(ts * 1000).toLocaleString();
 }
 
-function fmtNum(n) {
-  return Number(n || 0).toLocaleString();
+const TOOLKIT_LABELS = {
+  gmail: "Gmail",
+  github: "GitHub",
+  linear: "Linear",
+  slack: "Slack",
+  googlecalendar: "Google Calendar",
+};
+
+function toolkitLabel(id) {
+  return TOOLKIT_LABELS[id] || id.charAt(0).toUpperCase() + id.slice(1);
+}
+
+function toolkitIcon(id) {
+  const icons = {
+    gmail: "✉",
+    github: "⌘",
+    linear: "◆",
+    slack: "#",
+    googlecalendar: "◷",
+  };
+  return icons[id] || id.charAt(0).toUpperCase();
 }
 
 async function loadOverview() {
@@ -145,7 +186,7 @@ async function loadOverview() {
     const recent = data.recent || [];
     const el = $("#recent-table");
     if (!recent.length) {
-      el.innerHTML = '<p class="dim">No requests yet. Create a key and call the API.</p>';
+      el.innerHTML = '<p class="dash-empty">No requests yet. Create a key and call the API.</p>';
       return;
     }
     el.innerHTML = `<table class="data-table">
@@ -173,19 +214,19 @@ async function loadKeys() {
     const data = await api("GET", "/v1/dashboard/keys");
     const keys = data.keys || [];
     if (!keys.length) {
-      el.innerHTML = '<p class="dim">No keys yet. Create one to start calling the API.</p>';
+      el.innerHTML = '<p class="dash-empty">No keys yet. Create one to start calling the API.</p>';
       return;
     }
     el.innerHTML = keys
       .map(
-        (k) => `<div class="key-row">
-        <div>
-          <strong>${escapeHtml(k.name)}</strong>
-          <span class="key-prefix">${escapeHtml(k.key_prefix)}</span>
-          <span class="dim">Created ${fmtTime(k.created_at)} · Last used ${fmtTime(k.last_used_at)}</span>
+        (k) => `<article class="key-card">
+        <div class="key-card-body">
+          <h3 class="key-card-name">${escapeHtml(k.name)}</h3>
+          <code class="key-card-prefix">${escapeHtml(k.key_prefix)}…</code>
+          <p class="key-card-meta">Created ${fmtTime(k.created_at)} · Last used ${fmtTime(k.last_used_at)}</p>
         </div>
-        <button type="button" class="btn btn-ghost btn-sm revoke-btn" data-id="${k.id}">Revoke</button>
-      </div>`
+        <button type="button" class="btn btn-outline btn-sm revoke-btn" data-id="${k.id}">Revoke</button>
+      </article>`
       )
       .join("");
     $$(".revoke-btn", el).forEach((btn) => {
@@ -197,7 +238,7 @@ async function loadKeys() {
       });
     });
   } catch (_) {
-    el.innerHTML = '<p class="dim">Could not load keys.</p>';
+    el.innerHTML = '<p class="dash-empty">Could not load keys.</p>';
   }
 }
 
@@ -297,12 +338,22 @@ async function loadIntegrations() {
   try {
     const data = await api("GET", "/v1/dashboard/integrations");
     const linked = new Set(data.linked || []);
-    el.innerHTML = (data.toolkits || ["gmail", "github", "linear"]).map((tk) => {
+    const toolkits = (data.toolkits || ["gmail", "github", "linear", "slack", "googlecalendar"]).filter(
+      (tk) => tk !== "notion"
+    );
+    el.innerHTML = toolkits.map((tk) => {
       const on = linked.has(tk);
-      return `<div class="key-row">
-        <div><strong>${tk}</strong><span class="dim">${on ? "Connected" : "Not connected"}</span></div>
-        ${on ? "" : `<button type="button" class="btn btn-ghost btn-sm connect-btn" data-tk="${tk}">Connect</button>`}
-      </div>`;
+      const label = toolkitLabel(tk);
+      return `<article class="int-card${on ? " int-card--on" : ""}">
+        <div class="int-card-head">
+          <span class="int-card-icon" aria-hidden="true">${toolkitIcon(tk)}</span>
+          <div class="int-card-meta">
+            <h3 class="int-card-name">${escapeHtml(label)}</h3>
+            <span class="int-status${on ? " int-status--on" : ""}">${on ? "Connected" : "Not connected"}</span>
+          </div>
+        </div>
+        ${on ? '<span class="int-connected-badge">Active</span>' : `<button type="button" class="btn btn-pear btn-sm connect-btn" data-tk="${tk}">Connect</button>`}
+      </article>`;
     }).join("");
     $$(".connect-btn", el).forEach((btn) => {
       btn.addEventListener("click", async () => {
@@ -312,7 +363,7 @@ async function loadIntegrations() {
       });
     });
   } catch (_) {
-    el.innerHTML = '<p class="dim">Sign in to manage Composio connections.</p>';
+    el.innerHTML = '<p class="dash-empty">Sign in to manage Composio connections.</p>';
   }
 }
 
@@ -327,7 +378,7 @@ async function runPlayground() {
   }
   localStorage.setItem(API_KEY_KEY, key);
   updateQuickstart();
-  out.innerHTML = '<p class="dim">Tavily → Composio → your blocks → compress → Nebius… (30–60s)</p>';
+  out.innerHTML = '<p class="pg-loading">Tavily → Composio → your blocks → compress → Nebius… (30–60s)</p>';
   const context_blocks = contextRaw.split("---").map((s) => s.trim()).filter(Boolean);
   const body = context_blocks.length > 1
     ? { query, context_blocks }
