@@ -3,18 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SuperCompress — Agent memory for turn 4</title>
-  <meta name="description" content="The memory layer for AI agents. Compress Tavily + Composio context before every inference — ~65% KV savings, agents that don't forget." />
-
-  <!-- Twitter / OG -->
-  <meta property="og:type" content="website" />
+  <title>SuperCompress — AI agents that remember</title>
+  <meta name="description" content="SuperCompress trims bloated AI context before each reply — so agents stay fast and accurate past turn 4." />
   <meta property="og:url" content="https://arjunkshah.github.io/supercompress/" />
-  <meta property="og:title" content="SuperCompress — Your agent forgets at turn 4. We fix that." />
-  <meta property="og:description" content="Memory layer between gather and inference. Tavily → Composio → SuperCompress → Nebius. Open source." />
+  <meta property="og:title" content="SuperCompress — AI agents that remember" />
+  <meta property="og:description" content="Trim bloated context before each AI reply. ~65% smaller. Agents don't forget at turn 4." />
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="SuperCompress — Agent memory for turn 4" />
-  <meta name="twitter:description" content="Multi-turn agents blow up at turn 4. SuperCompress trims context before every LLM call — ~65% KV savings." />
-
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
@@ -28,141 +22,58 @@
 
   <nav class="nav">
     <div class="wrap nav-inner">
-      <a href="/" class="logo">super<em>compress</em></a>
+      <a href="index.html" class="logo">super<em>compress</em></a>
       <div class="nav-links">
-        <a href="#problem">Problem</a>
-        <a href="#stack">Stack</a>
-        <a href="#install">Install</a>
+        <a href="app.html">Demo</a>
         <a href="https://github.com/arjunkshah/supercompress" class="btn btn-ghost" target="_blank" rel="noopener">GitHub</a>
       </div>
     </div>
   </nav>
 
   <main class="wrap">
-    <section class="hero">
-      <div>
-        <p class="eyebrow">Agent memory layer · open source</p>
-        <h1>Your agent forgets at <span>turn 4</span>. We fix that.</h1>
-        <p class="lead">
-          Every turn, agents gather web search + app data. Context explodes — slower, pricier, wrong answers.
-          SuperCompress trims what matters <em>before</em> inference. One line of code. ~65% KV savings.
+    <section class="hero hero-simple">
+      <div class="hero-center">
+        <p class="eyebrow">Open source</p>
+        <h1>AI assistants forget.<br /><span>We fix the memory.</span></h1>
+        <p class="lead lead-center">
+          When an AI agent checks your email, GitHub, and the web — the pile of text gets huge.
+          SuperCompress cuts the junk <em>before</em> the AI reads it. Same answers, ~65% less bloat.
         </p>
-        <div class="hero-actions">
-          <a href="https://github.com/arjunkshah/supercompress" class="btn btn-primary" target="_blank" rel="noopener">Get started</a>
-          <a href="#install" class="btn btn-ghost">Quick install</a>
-        </div>
-        <div class="proof">
-          <span>pip install</span>
-          <span>Tavily · Composio · Nebius</span>
-          <span>OpenClaw ready</span>
-        </div>
-      </div>
-      <div class="term" aria-label="Demo terminal">
-        <div class="term-bar">
-          <span class="dot dot-r"></span>
-          <span class="dot dot-y"></span>
-          <span class="dot dot-g"></span>
-          <span>supercompress — turn 4 demo</span>
-        </div>
-        <pre class="term-body" id="terminal"></pre>
-      </div>
-    </section>
-
-    <section id="problem">
-      <p class="section-label">01 · The problem</p>
-      <h2>More tools = more context = agents break</h2>
-      <p class="section-lead">
-        Turn 1 feels magic. Turn 4 the model forgets your PRs, hallucinates, or times out.
-        Not a smarter prompt — a memory problem.
-      </p>
-      <div class="flow">
-        <span>Turn 1</span><span class="arrow">→</span>
-        <span>Turn 2</span><span class="arrow">→</span>
-        <span>Turn 3</span><span class="arrow">→</span>
-        <span class="warn" style="border-color:#e8a54b;color:#e8a54b">Turn 4 💥</span>
-      </div>
-      <p class="section-lead" style="margin-bottom:0">
-        SuperCompress runs <strong>between gather and inference</strong> — every turn, automatically.
-      </p>
-    </section>
-
-    <section id="stack">
-      <p class="section-label">02 · Full stack (not a library bolt-on)</p>
-      <h2>Each sponsor has a job</h2>
-      <p class="section-lead">We don't checklist integrations. Each one creates or solves part of the turn-4 problem.</p>
-      <div class="flow">
-        <span>Tavily</span><span class="arrow">→</span>
-        <span>Composio</span><span class="arrow">→</span>
-        <span class="core">SuperCompress</span><span class="arrow">→</span>
-        <span>Nebius</span><span class="arrow">→</span>
-        <span>Composio</span>
-      </div>
-      <div class="grid-3">
-        <div class="card">
-          <h3>Tavily</h3>
-          <p>Pours in live web research — verbose, redundant, huge.</p>
-          <p class="why">Creates the bloat SuperCompress is built to cut.</p>
-        </div>
-        <div class="card">
-          <h3>Composio</h3>
-          <p>GitHub, Gmail, Slack — gather state + execute tool calls each turn.</p>
-          <p class="why">Multi-turn trap: every action adds more tokens back.</p>
-        </div>
-        <div class="card">
-          <h3>SuperCompress</h3>
-          <p>Learned eviction policy. Keeps PR #42, drops duplicate noise.</p>
-          <p class="why">The only step that shrinks context before the model reads it.</p>
-        </div>
-        <div class="card">
-          <h3>Nebius</h3>
-          <p>Token Factory inference on compressed context + tool calling.</p>
-          <p class="why">Proves the agent still reasons — cheaper, faster, fits KV cache.</p>
-        </div>
-        <div class="card">
-          <h3>OpenClaw</h3>
-          <p>Runtime hook via SKILL.md + webhook. Long sessions, many turns.</p>
-          <p class="why">Where turn 4 actually happens in production.</p>
-        </div>
-        <div class="card">
-          <h3>You</h3>
-          <p><code>compress_for_turn()</code> or <code>supercompress loop</code> — ship in one afternoon.</p>
-          <p class="why">Drop into OpenClaw, Codex loops, any agent stack.</p>
+        <div class="hero-actions hero-actions-center">
+          <a href="app.html" class="btn btn-primary">Try the demo</a>
+          <a href="https://github.com/arjunkshah/supercompress" class="btn btn-ghost" target="_blank" rel="noopener">GitHub</a>
         </div>
       </div>
     </section>
 
-    <section id="install">
-      <p class="section-label">03 · Install</p>
-      <h2>Live in 60 seconds</h2>
-      <p class="section-lead">No API keys needed for the demo. Add yours for the full stack.</p>
-      <div class="install">
-        <div><span class="comment"># clone + setup</span></div>
-        <div>git clone https://github.com/arjunkshah/supercompress.git</div>
-        <div>cd supercompress && ./setup.sh</div>
-        <div></div>
-        <div><span class="comment"># the demos judges (and Twitter) want to see</span></div>
-        <div>./bin/supercompress turns    <span class="comment"># turn 4 problem visualized</span></div>
-        <div>./bin/supercompress loop     <span class="comment"># full sponsor stack</span></div>
-        <div></div>
-        <div><span class="comment"># or pip install into your agent</span></div>
-        <div>pip install git+https://github.com/arjunkshah/supercompress.git</div>
+    <section class="steps">
+      <div class="step">
+        <span class="step-n">1</span>
+        <h3>Agent gathers info</h3>
+        <p>Web search, PRs, emails — stacked every turn.</p>
+      </div>
+      <div class="step step-core">
+        <span class="step-n">2</span>
+        <h3>SuperCompress trims</h3>
+        <p>Keeps what matters. Drops the rest.</p>
+      </div>
+      <div class="step">
+        <span class="step-n">3</span>
+        <h3>AI responds</h3>
+        <p>Faster, cheaper, still accurate.</p>
       </div>
     </section>
 
-    <section>
-      <div class="cta-block">
-        <h2>Stop losing context at turn 4</h2>
-        <p>Open source. BuilderShip 2026. Built for agents that actually run.</p>
-        <a href="https://github.com/arjunkshah/supercompress" class="btn btn-primary" target="_blank" rel="noopener">Star on GitHub</a>
-      </div>
+    <section class="cta-block">
+      <h2>See turn 4 in action</h2>
+      <p>Interactive chart + compression playground. No install.</p>
+      <a href="app.html" class="btn btn-primary">Open demo →</a>
     </section>
   </main>
 
   <footer class="wrap">
-    <span>© 2026 SuperCompress · MIT</span>
-    <span><a href="https://github.com/arjunkshah/supercompress">github.com/arjunkshah/supercompress</a></span>
+    <span>© 2026 SuperCompress</span>
+    <span><a href="https://github.com/arjunkshah/supercompress">GitHub</a> · <a href="app.html">Demo</a></span>
   </footer>
-
-  <script src="assets/js/main.js"></script>
 </body>
 </html>

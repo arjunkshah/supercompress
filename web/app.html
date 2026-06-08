@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Demo — SuperCompress</title>
+  <meta name="description" content="Try SuperCompress — see turn 4 context growth and compression live." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body class="app-page">
+  <div class="grain"></div>
+  <div class="glow glow--1"></div>
+
+  <nav class="nav">
+    <div class="wrap nav-inner">
+      <a href="index.html" class="logo">super<em>compress</em></a>
+      <div class="nav-links">
+        <span id="mode-badge" class="mode-badge">…</span>
+        <a href="index.html">Home</a>
+        <a href="https://github.com/arjunkshah/supercompress" class="btn btn-ghost" target="_blank" rel="noopener">GitHub</a>
+      </div>
+    </div>
+  </nav>
+
+  <main class="wrap app-main">
+    <header class="app-header">
+      <h1>See it work</h1>
+      <p>Watch context grow each turn — then see what SuperCompress keeps.</p>
+    </header>
+
+    <section class="panel">
+      <h2>Turn 1 → 4</h2>
+      <p class="panel-desc">Each turn adds more search results and app data. SuperCompress holds the line.</p>
+      <div id="turn-chart" class="turn-chart"></div>
+    </section>
+
+    <section class="panel">
+      <h2>Try compression</h2>
+      <p class="panel-desc">Paste agent context (use <code>---</code> between blocks). Hit compress.</p>
+      <label class="field-label">Your question</label>
+      <input type="text" id="query-input" class="field-input" placeholder="What should I do first today?" />
+      <label class="field-label">Context (Tavily + GitHub + Gmail blocks)</label>
+      <textarea id="context-input" class="field-textarea" rows="12" placeholder="## Tavily&#10;...&#10;---&#10;## GitHub&#10;..."></textarea>
+      <button type="button" id="compress-btn" class="btn btn-primary">Compress</button>
+      <div id="compress-result" class="compress-result"></div>
+    </section>
+  </main>
+
+  <footer class="wrap app-footer">
+    <a href="https://github.com/arjunkshah/supercompress">github.com/arjunkshah/supercompress</a>
+  </footer>
+
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+{
+  "turns": [
+    {
+      "turn": 1,
+      "blocks": 2,
+      "words": 18,
+      "fifo_tokens": 16,
+      "sc_tokens": 16,
+      "kv_savings_pct": 48.4,
+      "original_tokens": 31
+    },
+    {
+      "turn": 2,
+      "blocks": 4,
+      "words": 36,
+      "fifo_tokens": 22,
+      "sc_tokens": 22,
+      "kv_savings_pct": 65.6,
+      "original_tokens": 64
+    },
+    {
+      "turn": 3,
+      "blocks": 6,
+      "words": 54,
+      "fifo_tokens": 33,
+      "sc_tokens": 33,
+      "kv_savings_pct": 66.0,
+      "original_tokens": 97
+    },
+    {
+      "turn": 4,
+      "blocks": 9,
+      "words": 82,
+      "fifo_tokens": 52,
+      "sc_tokens": 52,
+      "kv_savings_pct": 65.3,
+      "original_tokens": 150
+    }
+  ],
+  "query": "What should I ship today?",
+  "sample": {
+    "query": "What should I ship today?",
+    "original_tokens": 136,
+    "kept_tokens": 47,
+    "kv_savings_pct": 65.4,
+    "fifo_tokens": 47,
+    "policy": "SuperCompress",
+    "compressed_preview": "## Tavily research\n**Synthesis:** Composio shipped OpenClaw plugin. Nebius added Kimi K2.5.\n\n### [1] Composio OpenClaw MCP router\n\n---\n\n## GitHub (Composio)\n### PRs needing review\n- #42 fix/auth-timeout \u2014 CI green, waiting 18h\n- #39 feat/composio-triggers \u2014 draft\n\n---\n\n## Gmail\n- sponsor@builders \u2014 Demo video due June 12\n- teammate \u2014 Can you review PR #42?"
+  }
+}
