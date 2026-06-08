@@ -6,45 +6,49 @@ https://github.com/arjunkshah/supercompress
 
 ## One-liner
 
-SuperCompress is the agent memory layer — learned KV eviction between Tavily/Composio gather and Nebius inference.
+SuperCompress is the agent memory layer with a full BuilderShip sponsor loop — Tavily gather, Composio act, learned KV eviction, Nebius inference.
 
 ## What it does
 
-Multi-turn agents accumulate tool output every turn. By turn 4, context explodes — latency, cost, and forgetting. SuperCompress trims context with a ~5K-param learned policy (~65% KV savings vs FIFO) before every LLM call.
+Multi-turn agents accumulate tool output every turn. By turn 4, context explodes. SuperCompress trims context with a learned policy (~65% KV savings) **before every Nebius call**, in a reproducible sponsor stack.
 
-## Demo commands
+## Demo commands (judges)
 
 ```bash
+git clone https://github.com/arjunkshah/supercompress.git
+cd supercompress
 ./bootstrap.sh
-python examples/demo_compare.py
+supercompress loop
 ```
 
-Full sponsor stack (Harbor):
+Live (with BuilderShip keys):
 
 ```bash
-git clone https://github.com/arjunkshah/harbor.git
-HARBOR_DEMO=1 python examples/openclaw_agent_loop/run.py
+supercompress setup
+supercompress connect github gmail --wait
+supercompress loop --live
 ```
 
-## Stack
+## Stack — all sponsors wired
 
-- **SuperCompress** — memory (this repo)
-- **Harbor** — demo harness
-- **Tavily** — search
-- **Composio** — GitHub, Gmail, tools
-- **Nebius** — Kimi K2.5 inference
-- **OpenClaw** — agent runtime hook
+| Sponsor | Evidence |
+|---------|----------|
+| **Tavily** | `supercompress loop` step 1 — search + synthesize |
+| **Composio** | GitHub gather + tool execution in agent loop |
+| **SuperCompress** | `compress_for_turn()` + `compare_policies()` |
+| **Nebius** | Token Factory chat + tool calling |
+| **OpenClaw** | `openclaw/SKILL.md` + `/openclaw/chat` |
 
 ## Video script (60s)
 
 1. Problem: "Turn 4 — your agent forgets because KV cache exploded."
-2. Run `python examples/demo_compare.py` — show FIFO vs SuperCompress token counts.
-3. "This runs inside Harbor on every Nebius call — Tavily + Composio in, compressed out."
-4. Optional: `HARBOR_DEMO=1` Harbor agent loop clip.
+2. `supercompress loop` — show Tavily → Composio → compression → Nebius.
+3. Point at KV savings % in output.
+4. Optional: `supercompress serve` + OpenClaw skill.
 5. "pip install supercompress — drop into any agent loop."
 
 ## Links
 
 - Product spec: [PRODUCT.md](PRODUCT.md)
-- Harbor demo: https://github.com/arjunkshah/harbor
-- BuilderShip: https://ship.builders
+- BuilderShip checklist: [BUILDERSHIP.md](BUILDERSHIP.md)
+- https://ship.builders

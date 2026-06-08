@@ -1,0 +1,36 @@
+{
+  "prs_needing_review": [
+    {
+      "number": 42,
+      "title": "Add auth middleware for agent gateway",
+      "html_url": "https://github.com/example/harbor-agent/pull/42",
+      "draft": false
+    },
+    {
+      "number": 38,
+      "title": "SuperCompress hook before Nebius inference",
+      "html_url": "https://github.com/example/harbor-agent/pull/38",
+      "draft": false
+    }
+  ],
+  "open_issues": [
+    {
+      "number": 17,
+      "title": "Memory leak in multi-turn Composio loop"
+    },
+    {
+      "number": 12,
+      "title": "Tavily extract fails on paywalled URLs"
+    }
+  ],
+  "recent_commits": [
+    {
+      "sha": "a1b2c3d",
+      "message": "feat: morning brief workflow with full stack integration"
+    },
+    {
+      "sha": "e4f5g6h",
+      "message": "fix: SuperCompress budget for agent sessions"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "blocked": [
+    {
+      "identifier": "ENG-231",
+      "title": "Blocked: Composio OAuth refresh for Gmail",
+      "state": "blocked"
+    }
+  ],
+  "in_progress": [
+    {
+      "identifier": "ENG-228",
+      "title": "OpenClaw webhook bridge for Harbor",
+      "state": "in progress"
+    },
+    {
+      "identifier": "ENG-225",
+      "title": "Nebius deploy script for serverless",
+      "state": "started"
+    }
+  ],
+  "urgent": [
+    {
+      "identifier": "ENG-231",
+      "title": "Blocked: Composio OAuth refresh for Gmail",
+      "priority": 1
+    }
+  ]
+}

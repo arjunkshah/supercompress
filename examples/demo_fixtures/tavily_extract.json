@@ -1,0 +1,12 @@
+{
+  "results": [
+    {
+      "url": "https://composio.dev/toolkits/composio/framework/openclaw",
+      "content": "Install: openclaw plugins install @composio/openclaw-plugin. Connect toolkits at dashboard.composio.dev."
+    },
+    {
+      "url": "https://docs.tokenfactory.nebius.com/quickstart",
+      "content": "NEBIUS_API_KEY + base_url https://api.tokenfactory.nebius.com/v1/ for chat completions."
+    }
+  ]
+}

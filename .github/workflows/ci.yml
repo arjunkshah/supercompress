@@ -18,6 +18,8 @@ jobs:
       - name: Train checkpoint
         run: supercompress-train --fast
       - name: Test
-        run: pytest -q
+        run: HARBOR_DEMO=1 pytest -q
       - name: Demo smoke
-        run: python examples/demo_compare.py
+        run: |
+          HARBOR_DEMO=1 python examples/demo_compare.py
+          HARBOR_DEMO=1 python examples/buildership_loop/run.py

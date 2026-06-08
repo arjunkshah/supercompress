@@ -1,0 +1,29 @@
+{
+  "answer": "OpenClaw adoption is accelerating among agent builders. Composio released a native OpenClaw plugin. Nebius Token Factory added Kimi K2 and DeepSeek models for serverless deploy.",
+  "hits": [
+    {
+      "title": "Composio OpenClaw plugin ships MCP tool router",
+      "url": "https://composio.dev/toolkits/composio/framework/openclaw",
+      "content": "Composio's OpenClaw plugin connects agents to 250+ apps via MCP. OAuth handled. Tools include GitHub, Slack, Linear, Gmail.",
+      "score": 0.94
+    },
+    {
+      "title": "Nebius Token Factory — Kimi K2 on serverless",
+      "url": "https://docs.tokenfactory.nebius.com/quickstart",
+      "content": "OpenAI-compatible API for inference. Deploy OpenClaw to Nebius Serverless in one command.",
+      "score": 0.91
+    },
+    {
+      "title": "Tavily Agent Toolkit for research agents",
+      "url": "https://docs.tavily.com/examples/agent-toolkit/overview",
+      "content": "search_and_answer, search_dedup, crawl_and_summarize primitives for LLM agents.",
+      "score": 0.88
+    },
+    {
+      "title": "BuilderShip hackathon — 40 builders on a yacht",
+      "url": "https://ship.builders",
+      "content": "OpenClaw hackathon hosted by Composio, Nebius, Tavily. Submit by June 12.",
+      "score": 0.85
+    }
+  ]
+}

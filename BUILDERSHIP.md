@@ -1,47 +1,51 @@
 # BuilderShip — SuperCompress submission
 
-**Product:** Agent memory layer between gather (Tavily + Composio) and inference (Nebius).
+**Product:** Agent memory layer + full sponsor stack in one repo.
 
-**Pitch:** OpenClaw is where agents live. SuperCompress is why they don't forget at turn 4. [Harbor](https://github.com/arjunkshah/harbor) is the live proof.
+**Pitch:** OpenClaw is where agents live. SuperCompress is why they don't forget at turn 4.
 
-## 60-second demo (no API keys)
+## Sponsor flow (done)
+
+```
+User → Tavily → Composio → SuperCompress → Nebius → Composio
+```
+
+## 60-second demo (no keys)
 
 ```bash
-git clone https://github.com/arjunkshah/supercompress.git
-cd supercompress
 ./bootstrap.sh
+supercompress loop
 ```
 
-**Say:** "By turn 4, tool outputs blow up KV cache. Watch FIFO vs our learned policy."
+**Say:** "Watch the full stack — gather, compress, infer, act. KV savings every turn."
 
-## Full stack demo (Harbor)
+## Live demo (your keys)
 
 ```bash
-git clone https://github.com/arjunkshah/harbor.git && cd harbor
-./bootstrap.sh
-HARBOR_DEMO=1 python examples/openclaw_agent_loop/run.py
+supercompress setup
+supercompress connect github gmail --wait
+supercompress doctor
+supercompress loop --live
+supercompress brief --live
 ```
 
-## Sponsor map
+## OpenClaw
 
+```bash
+supercompress serve
+# POST http://127.0.0.1:8787/openclaw/chat
+# Skill: openclaw/SKILL.md
 ```
-User → Tavily → Composio → SuperCompress → Nebius → Composio actions
-```
-
-| Sponsor | Role |
-|---------|------|
-| **SuperCompress** (this repo) | Compress merged context every turn |
-| **Tavily** | Research blocks in context |
-| **Composio** | GitHub/Gmail gather + tool execution |
-| **Nebius** | Inference after compression |
-| **OpenClaw** | Runtime / distribution via Harbor |
 
 ## Deadline checklist
 
-- [ ] Public repo: https://github.com/arjunkshah/supercompress
-- [ ] `./bootstrap.sh` passes on a clean machine
-- [ ] Demo video shows `compare_policies` + Harbor loop
-- [ ] X/LinkedIn post with repo link
-- [ ] Luma submission form
+- [x] Public repo with full sponsor loop
+- [x] `./bootstrap.sh` + `supercompress loop` demo
+- [x] CI runs tests + loop smoke
+- [ ] Demo video recorded
+- [ ] X/LinkedIn post
+- [ ] Luma submission
 
-See [SUBMISSION.md](SUBMISSION.md) for copy-paste fields.
+## Credits
+
+See `.env.example` — Nebius, Composio, Tavily keys from [ship.builders](https://ship.builders).

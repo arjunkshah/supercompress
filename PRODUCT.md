@@ -2,9 +2,9 @@
 
 **One sentence:** SuperCompress is the agent memory layer; Harbor is the runnable demo that proves it across Tavily, Composio, Nebius, and OpenClaw.
 
-**Repos:**
-- Memory layer → https://github.com/arjunkshah/supercompress
-- Demo + workspace → https://github.com/arjunkshah/harbor
+**Repo:** https://github.com/arjunkshah/supercompress (memory layer + full sponsor loop)
+
+**Optional:** https://github.com/arjunkshah/harbor (extended workspace demo)
 
 ---
 
@@ -31,7 +31,7 @@ Multi-turn agent loops gather context from Tavily + Composio every turn. By turn
 | **Budget knob** | `budget_ratio=0.35` default — tune per agent |
 | **CompressResult** | `original_tokens`, `kept_tokens`, `kv_savings_pct`, `policy_name` |
 
-**Out of scope for SuperCompress repo:** UI, OAuth, Composio wiring, dashboards. That's Harbor.
+**In this repo:** `supercompress/stack/` — Tavily, Composio, Nebius, OpenClaw bridge, agent loop CLI.
 
 ---
 
@@ -53,10 +53,10 @@ Harbor **imports** `supercompress` — it does not fork the memory code.
 ### Path A — 60 seconds, no keys
 
 ```bash
-git clone https://github.com/arjunkshah/harbor.git && cd harbor
+git clone https://github.com/arjunkshah/supercompress.git && cd supercompress
 ./bootstrap.sh
-HARBOR_DEMO=1 harbor doctor                    # shows SuperCompress vs FIFO
-HARBOR_DEMO=1 python examples/openclaw_agent_loop/run.py
+supercompress doctor --demo
+supercompress loop
 ```
 
 **Say:** "Turn 4 problem. Watch KV savings in the loop output."
