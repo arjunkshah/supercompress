@@ -6,3 +6,7 @@ __pycache__/
 checkpoints/*.pt
 !checkpoints/.gitkeep
 .DS_Store
+harbor collective/
+.harbor/
+.tokenop/
+.env

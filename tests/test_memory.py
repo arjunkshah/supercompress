@@ -16,3 +16,13 @@ def test_compare_policies():
     cmp = compare_policies(text, "authenticate", budget_ratio=0.35)
     assert "FIFO" in cmp
     assert "SuperCompress" in cmp
+
+
+def test_compress_for_turn():
+    from supercompress import compress_for_turn
+
+    blocks = ["## Tavily\nmarket intel", "## GitHub\nPR #42 open"]
+    compressed, stats = compress_for_turn(blocks, "triage PRs", budget_ratio=0.35)
+    assert compressed
+    assert stats.original_tokens >= stats.kept_tokens
+    assert stats.kv_savings_pct >= 0

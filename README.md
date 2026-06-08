@@ -4,6 +4,17 @@
 
 Agent loops break at turn 4 when tool outputs inflate KV cache. SuperCompress keeps the tokens that matter.
 
+📦 **Repo:** [github.com/arjunkshah/supercompress](https://github.com/arjunkshah/supercompress)  
+🎬 **Demo:** `python examples/demo_compare.py`  
+📋 **BuilderShip:** [BUILDERSHIP.md](BUILDERSHIP.md) · [PRODUCT.md](PRODUCT.md)
+
+## Quick start
+
+```bash
+./bootstrap.sh
+python examples/demo_compare.py
+```
+
 ## Install
 
 ```bash

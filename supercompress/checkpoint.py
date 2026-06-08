@@ -28,7 +28,7 @@ def resolve_checkpoint(explicit: Optional[str | Path] = None) -> Path:
         if p.exists():
             return p
     raise FileNotFoundError(
-        "No memory checkpoint. Run: python scripts/train_memory_checkpoint.py --fast"
+        "No memory checkpoint. Run: supercompress-train --fast"
     )
 
 
