@@ -6,6 +6,7 @@ const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const TOKEN_KEY = "sc_token";
 const API_KEY_KEY = "sc_api_key";
 let useFirebase = false;
+let sessionSyncing = null;
 
 function apiPath(path) {
   const base = (window.SUPERCOMPRESS_API || "").replace(/\/$/, "");
@@ -29,10 +30,26 @@ async function fetchJson(method, path, body, headers = {}) {
   const opts = { method, headers: { "Content-Type": "application/json", ...headers } };
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(apiPath(path), opts);
-  const data = await r.json().catch(() => ({}));
-  const detail = typeof data.detail === "string" ? data.detail : JSON.stringify(data.detail || "");
+  const text = await r.text();
+  let data = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      if (r.ok) {
+        throw new Error("API returned invalid JSON. The backend may be offline.");
+      }
+      data = {};
+    }
+  }
+  if (r.ok && (data === null || typeof data !== "object" || Array.isArray(data))) {
+    throw new Error("API returned an unexpected response.");
+  }
+  const payload = data || {};
+  const detail =
+    typeof payload.detail === "string" ? payload.detail : JSON.stringify(payload.detail || "");
   if (!r.ok) throw new Error(detail || r.statusText || "Request failed");
-  return data;
+  return payload;
 }
 
 async function api(method, path, body) {
@@ -46,18 +63,46 @@ function showAuth() {
   $("#logout-btn-mobile")?.classList.add("hidden");
 }
 
+function showAuthError(message) {
+  const el = $("#auth-error");
+  if (!el) return;
+  el.textContent = message;
+  el.classList.remove("hidden");
+}
+
+function profileFromFirebase(fbUser) {
+  return {
+    id: fbUser.uid || "",
+    name: fbUser.displayName || "",
+    email: fbUser.email || "",
+  };
+}
+
+function resolveDashboardUser(data, fbUser) {
+  const apiUser = data?.user;
+  if (apiUser && (apiUser.id || apiUser.email)) return apiUser;
+  if (fbUser) return profileFromFirebase(fbUser);
+  return null;
+}
+
 function showDash(user) {
+  if (!user) {
+    showAuth();
+    showAuthError("Signed in but could not load your profile. Refresh or try again.");
+    return false;
+  }
   $("#auth-screen")?.classList.add("hidden");
   $("#dash-screen")?.classList.remove("hidden");
   $("#logout-btn")?.classList.remove("hidden");
   $("#logout-btn-mobile")?.classList.remove("hidden");
-  $("#user-label").textContent = user.name || user.email;
+  $("#user-label").textContent = user.name || user.email || "Signed in";
   loadOverview();
   loadKeys();
   loadIntegrations();
   updateQuickstart();
   const saved = localStorage.getItem(API_KEY_KEY);
   if (saved && $("#pg-key")) $("#pg-key").value = saved;
+  return true;
 }
 
 function setView(name) {
@@ -377,21 +422,30 @@ function friendlyAuthError(err) {
 }
 
 async function syncFirebaseSession(user) {
-  const el = $("#auth-error");
-  const t = await user.getIdToken();
-  localStorage.setItem(TOKEN_KEY, t);
-  try {
-    const data = await api("GET", "/v1/dashboard/me");
-    el.classList.add("hidden");
-    showDash(data.user);
-    return true;
-  } catch (err) {
-    localStorage.removeItem(TOKEN_KEY);
-    showAuth();
-    el.textContent = friendlyAuthError(err);
-    el.classList.remove("hidden");
-    return false;
-  }
+  if (!user?.getIdToken) return false;
+  if (sessionSyncing) return sessionSyncing;
+
+  sessionSyncing = (async () => {
+    const el = $("#auth-error");
+    try {
+      const t = await user.getIdToken();
+      localStorage.setItem(TOKEN_KEY, t);
+      const data = await api("GET", "/v1/dashboard/me");
+      const profile = resolveDashboardUser(data, user);
+      if (!profile) throw new Error("API did not return a user profile.");
+      el?.classList.add("hidden");
+      return showDash(profile);
+    } catch (err) {
+      localStorage.removeItem(TOKEN_KEY);
+      showAuth();
+      showAuthError(friendlyAuthError(err));
+      return false;
+    } finally {
+      sessionSyncing = null;
+    }
+  })();
+
+  return sessionSyncing;
 }
 
 function bindDash() {
@@ -465,12 +519,10 @@ async function initFirebaseAuth() {
   await ScFirebase.init(cfg.firebase);
 
   try {
-    const redirected = await ScFirebase.completeRedirectSignIn();
-    if (redirected) await syncFirebaseSession(redirected);
+    // Consume Google redirect result; onAuthStateChanged performs the session sync.
+    await ScFirebase.completeRedirectSignIn();
   } catch (err) {
-    const el = $("#auth-error");
-    el.textContent = friendlyAuthError(err);
-    el.classList.remove("hidden");
+    showAuthError(friendlyAuthError(err));
   }
 
   ScFirebase.onAuthStateChanged(async (user) => {
@@ -497,8 +549,7 @@ async function init() {
   if (token()) {
     try {
       const data = await api("GET", "/v1/dashboard/me");
-      showDash(data.user);
-      return;
+      if (showDash(resolveDashboardUser(data))) return;
     } catch (_) {
       await logout();
     }
