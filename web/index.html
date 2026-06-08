@@ -6,19 +6,19 @@
   <title>SuperCompress — Agent memory API</title>
   <meta name="description" content="One API. Tavily, Composio, SuperCompress, Nebius — every call. Replace OpenAI in your agent loop." />
   <meta name="theme-color" content="rgb(251,251,248)" />
-  <link rel="stylesheet" href="assets/css/style.css?v=4" />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 18 24'><path d='M11.85 0.19V5.74H17.66V0.19H11.85Z' fill='%235A8A30'/><path d='M11.85 11.42V17.01H6.15V11.42H11.85V5.74H0.51V22.66H17.66V11.42H11.85Z' fill='%23C0D984'/></svg>" />
+  <link rel="stylesheet" href="assets/css/style.css?v=5" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 20'><rect x='2' y='1' width='20' height='4' rx='2' fill='%23c9789e'/><rect x='5' y='8' width='14' height='4' rx='2' fill='%23e8a0bf'/><rect x='8' y='15' width='8' height='4' rx='2' fill='%23f0a8c8'/></svg>" />
 </head>
 <body class="df-site">
   <div class="df-bg-top" aria-hidden="true"></div>
-  <div class="df-bg-bottom" aria-hidden="true"></div>
 
   <header class="df-header">
     <div class="df-header-inner">
       <a href="index.html" class="df-logo">
-        <svg class="df-logo-mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 18 24" fill="none" aria-hidden="true">
-          <path d="M11.85 0.19V5.74H17.66V0.19H11.85Z" fill="#5A8A30"/>
-          <path d="M11.85 11.42V17.01H6.15V11.42H11.85V5.74H0.51V22.66H17.66V11.42H11.85Z" fill="#C0D984"/>
+        <svg class="df-logo-mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 20" aria-hidden="true">
+          <rect x="2" y="1" width="20" height="4" rx="2" fill="#c9789e"/>
+          <rect x="5" y="8" width="14" height="4" rx="2" fill="#e8a0bf"/>
+          <rect x="8" y="15" width="8" height="4" rx="2" fill="#f0a8c8"/>
         </svg>
         <span class="df-logo-word">super<em>compress</em></span>
       </a>
@@ -135,50 +135,55 @@
           <article class="df-feature-card">
             <div class="df-feature-visual df-feature-visual--blue">
               <div class="df-feature-inner">
-                <div class="flow-pipeline">
-                  <span>Query</span><i>→</i><span>Tavily</span><i>→</i><span>Composio</span><i>→</i><span class="core">Compress</span><i>→</i><span>Nebius</span>
-                </div>
-                <div class="metrics metrics--compact">
-                  <div class="metric"><span class="metric-n">65%</span><span class="metric-l">KV saved</span></div>
-                  <div class="metric"><span class="metric-n">4</span><span class="metric-l">Sponsors</span></div>
-                  <div class="metric"><span class="metric-n">1</span><span class="metric-l">Endpoint</span></div>
-                </div>
+                <ul class="feat-stack">
+                  <li>Tavily search</li>
+                  <li>Composio gather</li>
+                  <li class="feat-stack--active">Compress</li>
+                  <li>Nebius answer</li>
+                </ul>
+                <p class="feat-stat">65%<span>KV saved per turn</span></p>
               </div>
             </div>
             <div class="df-feature-copy">
               <h3>Every sponsor, every call.</h3>
-              <p>Tavily search, Composio apps, learned compression, and Nebius inference run in one pipeline. No wiring four vendors — pass your app state and get an answer back.</p>
+              <p>One pipeline — search, apps, compression, inference. No vendor wiring.</p>
             </div>
           </article>
 
           <article class="df-feature-card">
             <div class="df-feature-visual df-feature-visual--pear">
               <div class="df-feature-inner">
-                <span class="tag">Memory layer</span>
-                <div class="bar-compare">
-                  <div class="bar-row"><span>Raw context</span><div class="bar-track"><div class="bar bar-raw" style="width:100%"></div></div><em>12.4k</em></div>
-                  <div class="bar-row"><span>Compressed</span><div class="bar-track"><div class="bar bar-sc" style="width:35%"></div></div><em>4.3k</em></div>
+                <div class="feat-bars">
+                  <div>
+                    <div class="feat-bar-label"><span>Raw context</span><span>12.4k</span></div>
+                    <div class="feat-bar-track"><div class="feat-bar-fill feat-bar-fill--raw"></div></div>
+                  </div>
+                  <div>
+                    <div class="feat-bar-label"><span>Compressed</span><span>4.3k</span></div>
+                    <div class="feat-bar-track"><div class="feat-bar-fill feat-bar-fill--sc"></div></div>
+                  </div>
                 </div>
               </div>
             </div>
             <div class="df-feature-copy">
-              <h3>Your app context, compressed before inference.</h3>
-              <p>Pass tasks, reminders, and app state as <code>context_blocks</code>. We merge Tavily + Composio results, evict noise, and keep turn 4 from OOMing your agent.</p>
+              <h3>Context compressed before inference.</h3>
+              <p>Pass <code>context_blocks</code> — we evict noise so turn 4 doesn't OOM.</p>
             </div>
           </article>
 
           <article class="df-feature-card">
             <div class="df-feature-visual df-feature-visual--warm">
-              <div class="df-feature-inner df-feature-inner--integrations">
-                <div class="int-row"><strong>gmail</strong><span class="int-on">Connected</span></div>
-                <div class="int-row"><strong>github</strong><span class="int-on">Connected</span></div>
-                <div class="int-row"><strong>linear</strong><span class="int-pending">Connect</span></div>
-                <div class="int-row dim">Tavily + Nebius hosted by us</div>
+              <div class="df-feature-inner">
+                <ul class="feat-int-list">
+                  <li><strong>Gmail</strong><span class="feat-int-ok">Connected</span></li>
+                  <li><strong>GitHub</strong><span class="feat-int-ok">Connected</span></li>
+                  <li><strong>Linear</strong><span class="feat-int-pending">Connect</span></li>
+                </ul>
               </div>
             </div>
             <div class="df-feature-copy">
-              <h3>Connect Composio once. Ship in an afternoon.</h3>
-              <p>Link Gmail, GitHub, Linear in the dashboard. Every API call gathers snapshots and runs tools — replace your OpenAI call with one POST.</p>
+              <h3>Connect Composio once.</h3>
+              <p>Link apps in the dashboard — every API call gathers and acts.</p>
             </div>
           </article>
         </div>
@@ -293,6 +298,6 @@
   </div>
 
   <script src="assets/js/config.js?v=2"></script>
-  <script src="assets/js/site.js?v=3"></script>
+  <script src="assets/js/site.js?v=4"></script>
 </body>
 </html>
