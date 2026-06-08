@@ -25,6 +25,7 @@ services:
         sync: false
       - key: FIREBASE_API_KEY
         sync: false
+      # API_KEY + PROJECT_ID enable token verify without service account
       - key: FIREBASE_AUTH_DOMAIN
         sync: false
       - key: FIREBASE_APP_ID

@@ -10,11 +10,20 @@ _app = None
 _init_attempted = False
 
 
+def _has_service_account() -> bool:
+    return bool(
+        os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON", "").strip()
+        or os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "").strip()
+    )
+
+
 def firebase_enabled() -> bool:
     return bool(
-        os.environ.get("FIREBASE_PROJECT_ID", "").strip()
-        or os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "").strip()
-        or os.environ.get("FIREBASE_SERVICE_ACCOUNT_JSON", "").strip()
+        _has_service_account()
+        or (
+            os.environ.get("FIREBASE_PROJECT_ID", "").strip()
+            and os.environ.get("FIREBASE_API_KEY", "").strip()
+        )
     )
 
 
@@ -42,7 +51,7 @@ def _ensure_app():
     if _app is not None or _init_attempted:
         return _app
     _init_attempted = True
-    if not firebase_enabled():
+    if not _has_service_account():
         return None
     try:
         import firebase_admin
@@ -65,16 +74,46 @@ def _ensure_app():
     return _app
 
 
+def _verify_via_identity_toolkit(token: str) -> Optional[Dict[str, Any]]:
+    """Verify ID token via Identity Toolkit (works with public API key only)."""
+    api_key = os.environ.get("FIREBASE_API_KEY", "").strip()
+    if not api_key:
+        return None
+    try:
+        import httpx
+
+        r = httpx.post(
+            f"https://identitytoolkit.googleapis.com/v1/accounts:lookup?key={api_key}",
+            json={"idToken": token},
+            timeout=10,
+        )
+        if r.status_code != 200:
+            return None
+        users = r.json().get("users") or []
+        if not users:
+            return None
+        u = users[0]
+        return {
+            "uid": u.get("localId"),
+            "email": u.get("email"),
+            "name": u.get("displayName"),
+        }
+    except Exception:
+        return None
+
+
 def verify_id_token(token: str) -> Optional[Dict[str, Any]]:
     """Return decoded Firebase claims or None."""
     if not token or not firebase_enabled():
         return None
-    if _ensure_app() is None:
-        return None
-    try:
-        from firebase_admin import auth as fb_auth
 
-        decoded = fb_auth.verify_id_token(token, check_revoked=True)
-        return dict(decoded)
-    except Exception:
-        return None
+    if _ensure_app() is not None:
+        try:
+            from firebase_admin import auth as fb_auth
+
+            decoded = fb_auth.verify_id_token(token, check_revoked=True)
+            return dict(decoded)
+        except Exception:
+            pass
+
+    return _verify_via_identity_toolkit(token)
