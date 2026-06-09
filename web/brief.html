@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ship Brief — SuperCompress</title>
+  <meta name="description" content="Your daily builder brief — Tavily, Composio, compression, and Nebius in one click." />
+  <link rel="stylesheet" href="assets/css/style.css?v=8" />
+  <link rel="stylesheet" href="assets/css/brief.css?v=1" />
+</head>
+<body class="brief-page">
+  <header class="df-header">
+    <div class="df-header-inner">
+      <a href="index.html" class="df-logo">
+        <svg class="df-logo-mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 20" aria-hidden="true">
+          <rect x="2" y="1" width="20" height="4" rx="2" fill="#c9789e"/>
+          <rect x="5" y="8" width="14" height="4" rx="2" fill="#e8a0bf"/>
+          <rect x="8" y="15" width="8" height="4" rx="2" fill="#f0a8c8"/>
+        </svg>
+        <span class="df-logo-word">Ship <em>Brief</em></span>
+      </a>
+    </div>
+  </header>
+  <div class="df-header-spacer" aria-hidden="true"></div>
+
+  <main class="brief-main">
+    <section class="brief-hero" id="auth-gate">
+      <h1>Your daily ship brief</h1>
+      <p>Connect GitHub and Gmail once. Every brief runs <strong>Tavily</strong> (web), <strong>Composio</strong> (your apps), <strong>SuperCompress</strong> (memory), and <strong>Nebius</strong> (inference) — automatically.</p>
+      <button type="button" id="google-signin-btn" class="btn btn-google btn-block hidden">Continue with Google</button>
+      <p class="auth-error hidden" id="auth-error"></p>
+    </section>
+
+    <section class="brief-hero hidden" id="connect-gate">
+      <h1>Connect your apps</h1>
+      <p>Ship Brief needs real data from your tools. Connect at least GitHub or Gmail — then we gather, compress, and answer every time you open a brief.</p>
+      <div class="brief-connect-grid" id="connect-grid"></div>
+      <button type="button" class="btn btn-pear btn-block" id="refresh-connect">I connected — refresh</button>
+    </section>
+
+    <section class="brief-app hidden" id="brief-app">
+      <header class="brief-app-head">
+        <div>
+          <h1>Good morning</h1>
+          <p class="brief-date" id="brief-date"></p>
+        </div>
+        <button type="button" class="btn btn-pear" id="generate-btn">Generate brief</button>
+      </header>
+
+      <div class="brief-pipeline" id="pipeline">
+        <div class="brief-step" data-step="tavily"><span class="brief-step-icon">🔍</span><span>Tavily</span><small>Web intel</small></div>
+        <div class="brief-step" data-step="composio"><span class="brief-step-icon">🔗</span><span>Composio</span><small>GitHub · Gmail</small></div>
+        <div class="brief-step" data-step="compress"><span class="brief-step-icon">◧</span><span>SuperCompress</span><small>KV savings</small></div>
+        <div class="brief-step" data-step="nebius"><span class="brief-step-icon">✦</span><span>Nebius</span><small>Kimi K2.5</small></div>
+      </div>
+
+      <div class="brief-stats hidden" id="brief-stats"></div>
+      <article class="brief-output hidden" id="brief-output"></article>
+      <div class="brief-loading hidden" id="brief-loading">
+        <div class="pg-spinner"></div>
+        <p>Running full sponsor stack…</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="assets/js/config.js"></script>
+  <script src="assets/js/firebase-auth.js?v=3"></script>
+  <script src="assets/js/site.js?v=4"></script>
+  <script src="assets/js/brief.js?v=1"></script>
+</body>
+</html>

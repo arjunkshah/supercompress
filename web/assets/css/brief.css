@@ -1,0 +1,50 @@
+.brief-page { background: var(--bg); min-height: 100vh; }
+.brief-main { max-width: 720px; margin: 0 auto; padding: 32px 24px 80px; }
+.brief-hero h1 {
+  font-family: var(--serif);
+  font-size: clamp(32px, 5vw, 42px);
+  font-weight: 400;
+  line-height: 1.1;
+  margin-bottom: 12px;
+}
+.brief-hero p { color: var(--text-secondary); line-height: 1.55; margin-bottom: 24px; font-size: 15px; }
+.brief-connect-grid { display: grid; gap: 12px; margin-bottom: 20px; }
+.brief-connect-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 18px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--line);
+}
+.brief-app-head {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 16px; margin-bottom: 28px; flex-wrap: wrap;
+}
+.brief-app-head h1 { font-family: var(--serif); font-size: 2rem; font-weight: 400; margin-bottom: 4px; }
+.brief-date { color: var(--text-muted); font-size: 14px; }
+.brief-pipeline {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 24px;
+}
+@media (max-width: 640px) { .brief-pipeline { grid-template-columns: repeat(2, 1fr); } }
+.brief-step {
+  text-align: center; padding: 16px 10px; border-radius: 14px;
+  background: var(--surface); border: 1px solid var(--line);
+  font-size: 13px; font-weight: 500; transition: background 0.2s, border-color 0.2s;
+}
+.brief-step small { display: block; font-size: 10px; font-weight: 400; color: var(--text-muted); margin-top: 4px; }
+.brief-step-icon { display: block; font-size: 20px; margin-bottom: 6px; }
+.brief-step.active { background: var(--pink-soft); border-color: rgba(201, 120, 158, 0.4); }
+.brief-step.done { opacity: 0.55; }
+.brief-stats {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;
+}
+.brief-stat {
+  text-align: center; padding: 14px; border-radius: 12px;
+  background: var(--bg-soft); border: 1px solid var(--line);
+}
+.brief-stat-n { font-family: var(--serif); font-size: 1.35rem; display: block; }
+.brief-stat-l { font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
+.brief-output {
+  padding: 28px; border-radius: 16px; background: var(--surface);
+  border: 1px solid var(--line); font-size: 15px; line-height: 1.65;
+  white-space: pre-wrap;
+}
+.brief-loading { text-align: center; padding: 48px 0; color: var(--text-muted); }

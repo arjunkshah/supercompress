@@ -9,6 +9,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from supercompress.stack import auth, db
+from supercompress.stack.agent.loop import StackAgent
+from supercompress.stack.api_models import AgentTurnResponse
 from supercompress.stack.composio import get_composio
 from supercompress.stack.config import settings_for_user
 from supercompress.stack.firebase_auth import firebase_enabled, public_config
@@ -175,3 +177,33 @@ def connect_integration(toolkit: str, user: Dict[str, Any] = Depends(auth.requir
         "already_connected": result.already_connected,
         "redirect_url": result.redirect_url,
     }
+
+
+@router.post("/brief/generate", response_model=AgentTurnResponse)
+def generate_brief(user: Dict[str, Any] = Depends(auth.require_user)) -> AgentTurnResponse:
+    """
+    Consumer product — daily ship brief for signed-in users.
+    Runs Tavily → Composio → SuperCompress → Nebius (no API key required).
+    """
+    from supercompress.stack.api import _agent_result_to_response
+
+    s = settings_for_user(user["id"])
+    if not s.demo_mode and not s.has_live_stack():
+        raise HTTPException(status_code=503, detail="Agent stack unavailable on server.")
+
+    composio = get_composio(s)
+    composio.invalidate_cache()
+    linked = composio.dashboard_linked(CONNECTABLE_TOOLKITS)
+    if not s.demo_mode and not linked:
+        raise HTTPException(
+            status_code=400,
+            detail="Connect at least one app (GitHub or Gmail) in Integrations before generating a brief.",
+        )
+
+    query = (
+        "Give me my daily ship brief for a builder shipping an AI product. "
+        "What should I focus on today? Prioritize blockers, PRs, email, and relevant tech news."
+    )
+    agent = StackAgent(s)
+    result = agent.agent_turn(query, app_blocks=[])
+    return _agent_result_to_response(result, query)
