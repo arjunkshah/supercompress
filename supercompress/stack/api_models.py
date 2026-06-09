@@ -82,3 +82,37 @@ class AgentTurnResponse(BaseModel):
         },
         description="Sponsors invoked on every request",
     )
+
+
+class LabTurnRequest(BaseModel):
+    """Turn Lab — session accumulates context across turns (public demo, no API key)."""
+
+    session_id: Optional[str] = Field(default=None, description="Resume a lab session")
+    query: Optional[str] = Field(default=None, description="User message for this turn")
+    budget_ratio: float = Field(default=0.35, ge=0.05, le=1.0)
+
+
+class LabTurnHistoryEntry(BaseModel):
+    turn: int
+    original_tokens: int
+    compressed_tokens: int
+    kv_savings_pct: float
+    blocks: int
+
+
+class LabTurnResponse(BaseModel):
+    session_id: str
+    turn: int
+    query: str
+    answer: str
+    memory: CompressStats
+    phases: List[AgentPhase]
+    turn_history: List[LabTurnHistoryEntry]
+    stack: dict = Field(
+        default_factory=lambda: {
+            "tavily": True,
+            "composio": True,
+            "supercompress": True,
+            "nebius": True,
+        },
+    )

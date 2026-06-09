@@ -1,53 +1,76 @@
-/** SuperCompress demo — static JSON fallback + official cloud API */
+/** Turn Lab — live multi-turn demo via POST /v1/lab/turn */
 
 const $ = (sel) => document.querySelector(sel);
+
+const SUGGESTED = [
+  "What should I ship today?",
+  "Any blockers on my open PRs?",
+  "Summarize my unread email",
+  "What's the full picture across all my apps?",
+];
+
+let sessionId = "";
+let turnCount = 0;
+let running = false;
 
 function apiPath(path) {
   const base = (window.SUPERCOMPRESS_API || "").replace(/\/$/, "");
   return base ? `${base}${path}` : path;
 }
 
-async function loadDemo() {
-  try {
-    const r = await fetch(apiPath("/v1/turns/demo"));
-    if (r.ok) {
-      const d = await r.json();
-      return { turns: d.turns, query: d.query, sample: null, live: true };
-    }
-  } catch (_) {}
-  try {
-    const r = await fetch("data/demo.json");
-    if (r.ok) return r.json();
-  } catch (_) {}
-  try {
-    const r = await fetch("/api/turns");
-    if (r.ok) {
-      const d = await r.json();
-      return { turns: d.turns, query: d.query, sample: null };
-    }
-  } catch (_) {}
-  return null;
+function escapeHtml(s) {
+  return String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
-function renderTurns(data) {
+function setStackActive(sponsor) {
+  document.querySelectorAll(".lab-stack li").forEach((li) => {
+    li.classList.toggle("active", li.dataset.sponsor === sponsor);
+    li.classList.toggle("done", false);
+  });
+}
+
+function markStackDone() {
+  document.querySelectorAll(".lab-stack li").forEach((li) => {
+    li.classList.add("done");
+    li.classList.remove("active");
+  });
+}
+
+function renderPhases(phases) {
+  const log = $("#phase-log");
+  if (!log) return;
+  log.innerHTML = (phases || [])
+    .map((p) => `<li><code>${escapeHtml(p.phase)}</code>${escapeHtml(p.detail)}</li>`)
+    .join("");
+  const last = phases?.[phases.length - 1];
+  if (last) setStackActive(last.phase === "gather" ? "supercompress" : last.phase);
+}
+
+function renderTurnChart(history) {
   const el = $("#turn-chart");
-  if (!el || !data?.turns) return;
-  const max = Math.max(...data.turns.map((t) => t.original_tokens));
-  el.innerHTML = data.turns
+  if (!el || !history?.length) {
+    if (el) el.innerHTML = '<p class="dim">Run a turn to see context grow.</p>';
+    return;
+  }
+  const max = Math.max(...history.map((t) => t.original_tokens), 1);
+  el.innerHTML = history
     .map(
       (t) => `
     <div class="turn-row">
       <div class="turn-label">Turn ${t.turn}</div>
       <div class="turn-bars">
         <div class="bar-wrap">
-          <span class="bar-label">Raw context</span>
+          <span class="bar-label">Raw</span>
           <div class="bar-track"><div class="bar bar-raw" style="width:${(t.original_tokens / max) * 100}%"></div></div>
-          <span class="bar-val">${t.original_tokens} tok</span>
+          <span class="bar-val">${t.original_tokens}</span>
         </div>
         <div class="bar-wrap">
-          <span class="bar-label">After SuperCompress</span>
-          <div class="bar-track"><div class="bar bar-sc" style="width:${(t.sc_tokens / max) * 100}%"></div></div>
-          <span class="bar-val">${t.sc_tokens} tok · ${t.kv_savings_pct}% saved</span>
+          <span class="bar-label">Compressed</span>
+          <div class="bar-track"><div class="bar bar-sc" style="width:${(t.compressed_tokens / max) * 100}%"></div></div>
+          <span class="bar-val">${t.compressed_tokens} · ${t.kv_savings_pct}% saved</span>
         </div>
       </div>
     </div>`
@@ -55,102 +78,167 @@ function renderTurns(data) {
     .join("");
 }
 
-async function runCompress() {
-  const context = $("#context-input")?.value || "";
-  const query = $("#query-input")?.value || "What matters here?";
-  const out = $("#compress-result");
-  const btn = $("#compress-btn");
-  if (!out) return;
+function renderStats(memory) {
+  const panel = $("#stats-panel");
+  const grid = $("#stats-grid");
+  if (!panel || !grid || !memory) return;
+  panel.hidden = false;
+  grid.innerHTML = `
+    <div class="stat"><span class="stat-n">${memory.original_tokens}</span><span class="stat-l">tokens in</span></div>
+    <div class="stat"><span class="stat-n">${memory.kept_tokens}</span><span class="stat-l">kept</span></div>
+    <div class="stat accent"><span class="stat-n">${memory.kv_savings_pct}%</span><span class="stat-l">KV saved</span></div>`;
+}
 
-  btn.disabled = true;
-  out.textContent = "Compressing…";
+function appendMessage(role, text, meta) {
+  const thread = $("#chat-thread");
+  if (!thread) return;
+  const div = document.createElement("div");
+  div.className = `lab-msg lab-msg--${role}`;
+  div.innerHTML = `
+    <span class="lab-avatar">${role === "user" ? "U" : "SC"}</span>
+    <div class="lab-bubble">
+      ${meta ? `<p class="lab-meta">${escapeHtml(meta)}</p>` : ""}
+      <p>${escapeHtml(text)}</p>
+    </div>`;
+  thread.appendChild(div);
+  thread.scrollTop = thread.scrollHeight;
+}
+
+function updateMeta(data) {
+  turnCount = data.turn;
+  const turnEl = $("#turn-num");
+  const blockEl = $("#block-count");
+  if (turnEl) turnEl.textContent = String(data.turn);
+  const blocks = data.turn_history?.[data.turn_history.length - 1]?.blocks ?? 0;
+  if (blockEl) blockEl.textContent = String(blocks);
+  const input = $("#query-input");
+  if (input && data.turn < 4) {
+    input.placeholder = SUGGESTED[data.turn] || "Keep going — context is growing…";
+  } else if (input) {
+    input.placeholder = "Turn 4+ — this is where agents without compression die";
+  }
+}
+
+async function runTurn(query) {
+  if (running) return;
+  running = true;
+  const btn = $("#run-btn");
+  const form = $("#lab-form");
+  if (btn) btn.disabled = true;
+  if (form) form.classList.add("loading");
+
+  const q = query?.trim() || null;
+  if (q) appendMessage("user", q);
+
+  setStackActive("tavily");
+  const phaseLog = $("#phase-log");
+  if (phaseLog) phaseLog.innerHTML = "<li>Running sponsor stack…</li>";
 
   try {
-    const blocks = context.split("---").map((s) => s.trim()).filter(Boolean);
-    const body = blocks.length > 1
-      ? { context_blocks: blocks, query, budget_ratio: 0.35 }
-      : { context, query, budget_ratio: 0.35 };
-    const url = blocks.length > 1 ? apiPath("/v1/compress/blocks") : apiPath("/v1/compress");
-    const apiKey = localStorage.getItem("sc_api_key") || "";
-    const headers = { "Content-Type": "application/json" };
-    if (apiKey) headers["X-API-Key"] = apiKey;
-    const r = await fetch(url, {
+    const r = await fetch(apiPath("/v1/lab/turn"), {
       method: "POST",
-      headers,
-      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        session_id: sessionId || undefined,
+        query: q,
+        budget_ratio: 0.35,
+      }),
     });
+    if (!r.ok) {
+      const err = await r.text();
+      throw new Error(err || `HTTP ${r.status}`);
+    }
+    const data = await r.json();
+    sessionId = data.session_id;
+    markStackDone();
+    renderPhases(data.phases);
+    renderTurnChart(data.turn_history);
+    renderStats(data.memory);
+    updateMeta(data);
+
+    const mem = data.memory;
+    const meta = `Turn ${data.turn} · ${mem.original_tokens}→${mem.kept_tokens} tok · ${mem.kv_savings_pct}% KV saved`;
+    appendMessage("agent", data.answer || "(no answer)", meta);
+
+    if (data.turn === 4) {
+      appendMessage(
+        "agent",
+        "Turn 4 — context would OOM without SuperCompress. Every prior turn's Tavily + Composio blocks are still in memory.",
+        "Memory layer"
+      );
+    }
+  } catch (e) {
+    appendMessage("agent", `Lab unavailable: ${e.message}. API may be offline — start the stack locally.`, "Error");
+    if (phaseLog) phaseLog.innerHTML = "";
+  } finally {
+    running = false;
+    if (btn) btn.disabled = false;
+    if (form) form.classList.remove("loading");
+    const input = $("#query-input");
+    if (input) input.value = "";
+  }
+}
+
+function resetSession() {
+  sessionId = "";
+  turnCount = 0;
+  const thread = $("#chat-thread");
+  if (thread) thread.innerHTML = "";
+  renderTurnChart([]);
+  $("#stats-panel")?.setAttribute("hidden", "");
+  $("#phase-log") && ($("#phase-log").innerHTML = "");
+  document.querySelectorAll(".lab-stack li").forEach((li) => {
+    li.classList.remove("active", "done");
+  });
+  const turnEl = $("#turn-num");
+  const blockEl = $("#block-count");
+  if (turnEl) turnEl.textContent = "0";
+  if (blockEl) blockEl.textContent = "0";
+  const input = $("#query-input");
+  if (input) input.placeholder = SUGGESTED[0];
+  appendMessage("agent", "Session reset. Run turn 1 — each turn adds Tavily search + Composio gather to accumulated context.", "Turn Lab");
+}
+
+async function loadStaticChart() {
+  try {
+    const r = await fetch(apiPath("/v1/turns/demo"));
     if (r.ok) {
       const d = await r.json();
-      showResult(d, out);
-      btn.disabled = false;
-      return;
+      renderTurnChart(
+        d.turns.map((t) => ({
+          turn: t.turn,
+          original_tokens: t.original_tokens,
+          compressed_tokens: t.sc_tokens,
+          kv_savings_pct: t.kv_savings_pct,
+        }))
+      );
+      return true;
     }
   } catch (_) {}
-
-  const demo = await loadDemo();
-  if (demo?.sample) {
-    showResult(
-      {
-        original_tokens: demo.sample.original_tokens,
-        kept_tokens: demo.sample.kept_tokens,
-        fifo_tokens: demo.sample.fifo_tokens,
-        kv_savings_pct: demo.sample.kv_savings_pct,
-        policy: demo.sample.policy,
-        compressed_preview: demo.sample.compressed_preview,
-      },
-      out
-    );
-    out.insertAdjacentHTML(
-      "beforeend",
-      '\n\n<span class="dim">(Static fallback — <a href="dashboard.html">get an API key</a> for live compression)</span>'
-    );
-  } else {
-    out.textContent = "Demo data unavailable.";
-  }
-  btn.disabled = false;
-}
-
-function showResult(d, out) {
-  const s = d.stats || d;
-  const text = d.compressed_text || d.compressed_preview || "";
-  out.innerHTML = `
-<div class="result-grid">
-  <div class="stat"><span class="stat-n">${s.original_tokens}</span><span class="stat-l">tokens in</span></div>
-  <div class="stat"><span class="stat-n">${s.kept_tokens}</span><span class="stat-l">tokens kept</span></div>
-  <div class="stat accent"><span class="stat-n">${s.kv_savings_pct}%</span><span class="stat-l">KV saved</span></div>
-</div>
-<p class="result-meta">Policy: <strong>${s.policy_name || d.policy || "SuperCompress"}</strong> · FIFO would keep ~${s.fifo_kept_tokens ?? d.fifo_tokens} tokens</p>
-<pre class="result-preview">${escapeHtml(text)}</pre>`;
-}
-
-function escapeHtml(s) {
-  return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  return false;
 }
 
 async function init() {
-  const data = await loadDemo();
-  renderTurns(data);
+  renderTurnChart([]);
+  appendMessage(
+    "agent",
+    "Welcome to Turn Lab. Hit Run turn — no API key needed. Each turn runs Tavily → Composio → SuperCompress → Nebius on all accumulated context.",
+    "Ready"
+  );
 
-  if (data?.sample && $("#context-input")) {
-    const sample = `## Tavily research
-Composio shipped OpenClaw plugin. Nebius added Kimi K2.5.
+  $("#lab-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    runTurn($("#query-input")?.value);
+  });
+  $("#reset-btn")?.addEventListener("click", resetSession);
 
----
-## GitHub
-- #42 fix/auth-timeout — review requested
-- #39 feat/composio-triggers — draft
-
----
-## Gmail
-- sponsor@builders — Demo due June 12`;
-    $("#context-input").value = sample;
-    $("#query-input").value = data.sample.query || "What should I ship today?";
-  }
-
-  $("#compress-btn")?.addEventListener("click", runCompress);
   const live = await fetch(apiPath("/v1/health")).then((r) => r.ok).catch(() => false);
   const badge = $("#mode-badge");
-  if (badge) badge.textContent = live ? "Live API" : data?.live ? "API" : "Static demo";
+  if (badge) badge.textContent = live ? "Live API" : "API offline";
+  if (!live) await loadStaticChart();
+
+  const input = $("#query-input");
+  if (input) input.placeholder = SUGGESTED[0];
 }
 
 init();

@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Demo — SuperCompress</title>
-  <meta name="description" content="Try SuperCompress — see turn 4 context growth and compression live." />
+  <title>Turn Lab — SuperCompress</title>
+  <meta name="description" content="Multi-turn agent demo — Tavily, Composio, SuperCompress, Nebius on every turn. Watch context explode at turn 4." />
   <meta name="theme-color" content="rgb(251,251,248)" />
-  <link rel="stylesheet" href="assets/css/style.css?v=5" />
+  <link rel="stylesheet" href="assets/css/style.css?v=6" />
 </head>
-<body class="app-page">
+<body class="app-page lab-page">
   <header class="df-header">
     <div class="df-header-inner">
       <a href="index.html" class="df-logo">
@@ -26,7 +26,7 @@
           <span id="mode-badge" class="mode-badge mode-badge--nav">…</span>
         </nav>
         <div class="df-cta-pill">
-          <a href="dashboard.html">Dashboard</a>
+          <a href="dashboard.html">Connect apps</a>
         </div>
       </div>
       <button type="button" class="df-menu-btn" id="df-menu-btn" aria-label="Open menu" aria-expanded="false">
@@ -36,33 +36,58 @@
     <div class="df-mobile-nav hidden" id="df-mobile-nav">
       <a href="index.html">Home</a>
       <a href="api.html">Docs</a>
-      <a href="dashboard.html">Dashboard</a>
+      <a href="dashboard.html">Connect apps</a>
     </div>
   </header>
   <div class="df-header-spacer" aria-hidden="true"></div>
 
-  <main class="wrap app-main">
-    <header class="app-header">
-      <h1>See it work</h1>
-      <p>Watch context grow each turn — then see what SuperCompress keeps.</p>
+  <main class="lab-main">
+    <header class="lab-header">
+      <div>
+        <p class="lab-eyebrow">Turn Lab</p>
+        <h1>Agents forget at turn 4</h1>
+        <p class="lab-lead">Each turn gathers from Tavily + Composio, accumulates context, compresses with SuperCompress, answers via Nebius. Run four turns — watch KV explode without compression.</p>
+      </div>
+      <div class="lab-actions-top">
+        <button type="button" id="reset-btn" class="btn btn-ghost">Reset session</button>
+      </div>
     </header>
 
-    <section class="panel">
-      <h2>Turn 1 → 4</h2>
-      <p class="panel-desc">Each turn adds more search results and app data. SuperCompress holds the line.</p>
-      <div id="turn-chart" class="turn-chart"></div>
-    </section>
+    <div class="lab-grid">
+      <section class="lab-chat panel">
+        <div id="chat-thread" class="lab-thread" aria-live="polite"></div>
+        <form id="lab-form" class="lab-form">
+          <input type="text" id="query-input" class="field-input" placeholder="Ask anything — or leave blank for suggested turn query" autocomplete="off" />
+          <button type="submit" id="run-btn" class="btn btn-pear">Run turn</button>
+        </form>
+        <p class="lab-hint">Turn <span id="turn-num">0</span> · <span id="block-count">0</span> context blocks · <a href="dashboard.html">Connect Composio</a> for your Gmail &amp; GitHub</p>
+      </section>
 
-    <section class="panel">
-      <h2>Try compression</h2>
-      <p class="panel-desc">Paste agent context (use <code>---</code> between blocks). Hit compress.</p>
-      <label class="field-label">Your question</label>
-      <input type="text" id="query-input" class="field-input" placeholder="What should I do first today?" />
-      <label class="field-label">Context (Tavily + GitHub + Gmail blocks)</label>
-      <textarea id="context-input" class="field-textarea" rows="12" placeholder="## Tavily&#10;...&#10;---&#10;## GitHub&#10;..."></textarea>
-      <button type="button" id="compress-btn" class="btn btn-pear">Compress</button>
-      <div id="compress-result" class="compress-result"></div>
-    </section>
+      <aside class="lab-side">
+        <section class="panel lab-stack-panel">
+          <h2>Sponsor stack</h2>
+          <p class="panel-desc">Every turn runs all four — no opt-out.</p>
+          <ul class="lab-stack" id="lab-stack">
+            <li data-sponsor="tavily"><span class="lab-dot"></span>Tavily</li>
+            <li data-sponsor="composio"><span class="lab-dot"></span>Composio</li>
+            <li data-sponsor="supercompress"><span class="lab-dot"></span>SuperCompress</li>
+            <li data-sponsor="nebius"><span class="lab-dot"></span>Nebius</li>
+          </ul>
+          <ul id="phase-log" class="phase-list"></ul>
+        </section>
+
+        <section class="panel">
+          <h2>Context growth</h2>
+          <p class="panel-desc">Raw tokens vs after compression each turn.</p>
+          <div id="turn-chart" class="turn-chart"></div>
+        </section>
+
+        <section class="panel lab-stats-panel" id="stats-panel" hidden>
+          <h2>Last turn</h2>
+          <div id="stats-grid" class="result-grid"></div>
+        </section>
+      </aside>
+    </div>
   </main>
 
   <footer class="df-footer">
@@ -73,6 +98,6 @@
 
   <script src="assets/js/config.js"></script>
   <script src="assets/js/site.js?v=4"></script>
-  <script src="assets/js/app.js"></script>
+  <script src="assets/js/app.js?v=2"></script>
 </body>
 </html>

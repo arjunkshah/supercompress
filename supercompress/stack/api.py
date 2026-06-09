@@ -18,7 +18,10 @@ from supercompress.stack.api_models import (
     CompressResponse,
     CompressStats,
     CompressTextRequest,
+    LabTurnRequest,
+    LabTurnResponse,
 )
+from supercompress.stack.lab import run_lab_turn
 from supercompress.stack.config import get_settings, settings_for_user
 from supercompress.stack.turn4_demo import QUERY, TURN_BLOCKS
 
@@ -52,6 +55,7 @@ def api_health() -> Dict[str, Any]:
         },
         "endpoints": {
             "agent_turn": "POST /v1/agent/turn",
+            "lab_turn": "POST /v1/lab/turn",
             "compress_blocks": "POST /v1/compress/blocks",
             "docs": "/docs",
         },
@@ -180,6 +184,17 @@ def compare(
         fifo=_stats_from_result(cmp["FIFO"]),
         supercompress=sc_stats,
     )
+
+
+@router.post("/lab/turn", response_model=LabTurnResponse)
+def lab_turn(req: LabTurnRequest) -> LabTurnResponse:
+    """
+    **Turn Lab** — public multi-turn demo (no API key).
+
+    Each call: Tavily → Composio → append session → SuperCompress ALL → Nebius.
+    Context blocks accumulate across turns to show turn-4 explosion vs compression.
+    """
+    return run_lab_turn(req)
 
 
 @router.get("/turns/demo")
